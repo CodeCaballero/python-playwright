@@ -1,0 +1,7 @@
+pytest==9.0.3
+pytest-bdd==8.1.0
+playwright==1.60.0
+pytest-html==4.2.0
+pytest-xdist==3.8.0
+pytest-playwright==0.8.0
+pytest-env==1.6.0
