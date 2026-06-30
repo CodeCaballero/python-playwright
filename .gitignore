@@ -3,7 +3,7 @@
 __pycache__/
 .pytest_cache/
 *.pyc
-
+bin/
 .idea/
 logs/
 reports/

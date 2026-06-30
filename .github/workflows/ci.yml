@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout tests repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          playwright install --with-deps chromium
+
+      - name: Checkout app repo
+        uses: actions/checkout@v4
+        with:
+          repository: CodeCaballero/cypress-realworld-app
+          path: app
+          ref: develop
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      - name: Install app dependencies
+        run: |
+          cd app
+          yarn install --frozen-lockfile
+
+      - name: Start app
+        run: |
+          cd app
+          yarn dev &
+          npx wait-on http://localhost:3000 http://localhost:3001 --timeout 60000
+
+      - name: Run tests WEB
+        run: |
+          echo -e "\033[92mRUN TEST WEB\033[0m"
+          pytest test/web/ -v
+        env:
+          WEB_BASE_URL: http://localhost:3000
+          API_BASE_URL: http://localhost:3001
+
+      - name: Run tests API
+        run: |
+          echo -e "\033[92mRUN TEST API\033[0m"
+          pytest test/api/ -v
+        env:
+          WEB_BASE_URL: http://localhost:3000
+          API_BASE_URL: http://localhost:3001
