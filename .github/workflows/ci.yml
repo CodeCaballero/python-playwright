@@ -43,6 +43,9 @@ jobs:
           cd app
           yarn install --frozen-lockfile
 
+      - name: Seed database
+        run: yarn db:seed:dev
+
       - name: Start app
         run: |
           cd app
