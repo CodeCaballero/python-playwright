@@ -47,7 +47,14 @@ jobs:
         run: |
           cd app
           yarn dev &
+          # Espera a que los puertos estén abiertos (opcional, pero rápido)
           npx wait-on http://localhost:3000 http://localhost:3001 --timeout 60000
+          # Healthchecks reales
+          echo "Checking WEB health..."
+          curl --fail --retry 10 --retry-delay 5 --retry-connrefused http://localhost:3000 || exit 1
+          echo "Checking API health..."
+          curl --fail --retry 10 --retry-delay 5 --retry-connrefused http://localhost:3001/api/health || exit 1
+          echo "All services are healthy!"
 
       - name: Run tests API
         run: |
