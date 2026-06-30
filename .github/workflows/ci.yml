@@ -28,7 +28,7 @@ jobs:
         with:
           repository: CodeCaballero/cypress-realworld-app
           path: app
-          ref: develop
+          ref: main
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
