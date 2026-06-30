@@ -49,6 +49,14 @@ jobs:
           yarn dev &
           npx wait-on http://localhost:3000 http://localhost:3001 --timeout 60000
 
+      - name: Run tests API
+        run: |
+          echo -e "\033[92mRUN TEST API\033[0m"
+          pytest test/api/ -v
+        env:
+          WEB_BASE_URL: http://localhost:3000
+          API_BASE_URL: http://localhost:3001
+
       - name: Run tests WEB
         run: |
           echo -e "\033[92mRUN TEST WEB\033[0m"
@@ -57,10 +65,3 @@ jobs:
           WEB_BASE_URL: http://localhost:3000
           API_BASE_URL: http://localhost:3001
 
-      - name: Run tests API
-        run: |
-          echo -e "\033[92mRUN TEST API\033[0m"
-          pytest test/api/ -v
-        env:
-          WEB_BASE_URL: http://localhost:3000
-          API_BASE_URL: http://localhost:3001
