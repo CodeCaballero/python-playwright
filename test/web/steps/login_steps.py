@@ -19,5 +19,7 @@ def step_impl(page: Page, username: str):
     LoginPage(page).check_username(username)
 
 
-
+@then(parsers.parse('I should see the login error "{message}"'))
+def check_login_error(page: Page, message: str):
+    LoginPage(page).check_login_error(message)
 

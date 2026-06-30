@@ -8,3 +8,8 @@ Feature: User Login
     When I enter username "Reuben97" and password "s3cret"
     And I click the login button
     Then I should see the dashboard and the username "Reuben97"
+
+  Scenario: Failed login with invalid credentials
+    When I enter username "test222" and password "2222222"
+    And I click the login button
+    Then I should see the login error "Username or password is invalid"
