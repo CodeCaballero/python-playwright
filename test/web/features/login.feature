@@ -5,9 +5,9 @@ Feature: User Login
     Given I am on the login page
 
   Scenario: Successful login with valid credentials
-    When I enter username "Reuben97" and password "s3cret"
+    When I enter username "Heath93" and password "s3cret"
     And I click the login button
-    Then I should see the dashboard and the username "Reuben97"
+    Then I should see the dashboard and the username "Heath93"
 
   Scenario: Failed login with invalid credentials
     When I enter username "test222" and password "2222222"
