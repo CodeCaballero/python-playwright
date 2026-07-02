@@ -23,6 +23,15 @@ jobs:
           pip install -r requirements.txt
           playwright install --with-deps chromium
 
+      - name: Install Allure CLI and Java
+        run: |
+          sudo apt update
+          sudo apt install -y openjdk-17-jre-headless
+          wget https://github.com/allure-framework/allure2/releases/download/2.32.0/allure-2.32.0.tgz
+          tar -xzf allure-2.32.0.tgz
+          sudo mv allure-2.32.0 /opt/allure
+          sudo ln -s /opt/allure/bin/allure /usr/local/bin/allure
+
       - name: Checkout app repo
         uses: actions/checkout@v4
         with:
@@ -61,7 +70,7 @@ jobs:
       - name: Run tests API
         run: |
           echo -e "\033[92mRUN TEST API\033[0m"
-          pytest test/api/ -v
+          pytest test/api/ -v --alluredir=allure-results
         env:
           WEB_BASE_URL: http://localhost:3000
           API_BASE_URL: http://localhost:3001
@@ -69,8 +78,32 @@ jobs:
       - name: Run tests WEB
         run: |
           echo -e "\033[92mRUN TEST WEB\033[0m"
-          pytest test/web/ -v
+          pytest test/web/ -v --alluredir=allure-results
         env:
           WEB_BASE_URL: http://localhost:3000
           API_BASE_URL: http://localhost:3001
 
+      - name: Load previous report history
+        uses: actions/checkout@v4
+        if: always()
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+
+      - name: Generate Allure report
+        if: always()
+        run: |
+          # Copiar historial si existe
+          if [ -d "gh-pages/history" ]; then
+            cp -r gh-pages/history allure-results/ || true
+          fi
+          allure generate allure-results -o allure-report --clean
+
+      - name: Deploy to GitHub Pages
+        if: always()
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./allure-report
