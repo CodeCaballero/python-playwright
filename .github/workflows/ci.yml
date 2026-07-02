@@ -27,9 +27,9 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y openjdk-17-jre-headless
-          wget https://github.com/allure-framework/allure2/releases/download/2.32.0/allure-2.32.0.tgz
-          tar -xzf allure-2.32.0.tgz
-          sudo mv allure-2.32.0 /opt/allure
+          wget https://github.com/allure-framework/allure2/releases/download/2.42.0/allure-2.42.0.tgz
+          tar -xzf allure-2.42.0.tgz
+          sudo mv allure-2.42.0 /opt/allure
           sudo ln -s /opt/allure/bin/allure /usr/local/bin/allure
 
       - name: Checkout app repo
@@ -61,9 +61,7 @@ jobs:
         run: |
           cd app
           yarn dev &
-          # Espera a que los puertos estén abiertos (opcional, pero rápido)
           npx wait-on http://localhost:3000 http://localhost:3001 --timeout 60000
-          # Healthchecks reales
           echo "Checking WEB health..."
           curl --fail --retry 10 --retry-delay 5 --retry-connrefused http://localhost:3000 || exit 1
 
