@@ -1,7 +1,7 @@
 from config.settings import API_BASE_URL
 
 
-class LoginClient:
+class ApiClient:
     def __init__(self, request, base_url: str | None = None):
         if base_url is None:
             base_url = API_BASE_URL
@@ -13,3 +13,9 @@ class LoginClient:
             f"{self.base_url}/login",
             data={"username": username, "password": password},
         )
+
+    def transactions(self):
+        return self.request.get(f"{self.base_url}/transactions")
+
+    def logout(self):
+        return self.request.post(f"{self.base_url}/logout")

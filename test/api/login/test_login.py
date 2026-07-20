@@ -13,6 +13,7 @@ import pytest
     ("", "s3cret", 400)
    
 ])
-def test_login(login_client, username, password, status):
-    response = login_client.login(username, password)
+def test_login(api_client, username, password, status):
+    response = api_client.login(username, password)
     assert response.status == status
+
