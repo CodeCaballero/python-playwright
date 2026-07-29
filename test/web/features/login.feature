@@ -12,8 +12,17 @@ Feature: User Login
     And I click the login button
     Then I should see the login error "Username or password is invalid"
 
-   Scenario: Login storage state    
+  Scenario: Login storage state
     Given the user "Heath93" is logged in
     Then I should see the dashboard and the username "Heath93"
 
-
+  @reset_db
+  Scenario Outline: Show onboarding with new user
+    Given A created user named "<userName>" with password "<password>"
+    Given I am on the login page
+    When I enter username "<userName>" and password "<password>"
+    And I click the login button
+    Then the onboarding dialog title is shown
+    Examples:
+      | userName | password |
+      | new_user | s3cret   |
