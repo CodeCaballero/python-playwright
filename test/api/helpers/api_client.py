@@ -8,14 +8,14 @@ class ApiClient:
         self.request = request
         self.base_url = base_url.rstrip("/")
 
-    def login(self, username: str, password: str):
+    def post_login(self, username: str, password: str):
         return self.request.post(
             f"{self.base_url}/login",
             data={"username": username, "password": password},
         )
 
-    def transactions(self):
+    def get_transactions(self):
         return self.request.get(f"{self.base_url}/transactions")
 
-    def logout(self):
+    def post_logout(self):
         return self.request.post(f"{self.base_url}/logout")

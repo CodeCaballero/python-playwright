@@ -2,7 +2,7 @@ import pytest
 
 from config.settings import API_BASE_URL
 from config.users import get_password_user
-from test.api.login.login_client import ApiClient
+from test.api.helpers.api_client import ApiClient
 
 
 @pytest.fixture
@@ -14,5 +14,5 @@ def api_client(playwright):
 
 @pytest.fixture
 def api_client_with_auth(api_client):
-    api_client.login("Heath93",get_password_user("Heath93"))
+    api_client.post_login("Heath93", get_password_user("Heath93"))
     return api_client

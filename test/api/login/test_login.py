@@ -14,6 +14,6 @@ import pytest
    
 ])
 def test_login(api_client, username, password, status):
-    response = api_client.login(username, password)
+    response = api_client.post_login(username, password)
     assert response.status == status
 
