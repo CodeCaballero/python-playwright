@@ -14,5 +14,7 @@ def api_client(playwright):
 
 @pytest.fixture
 def api_client_with_auth(api_client):
-    api_client.post_login("Heath93", get_password_user("Heath93"))
-    return api_client
+    def _api_client_with_auth(user: str):
+        api_client.post_login(user, get_password_user(user))
+        return api_client
+    return _api_client_with_auth

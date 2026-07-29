@@ -1,7 +1,8 @@
 import pytest
 
 def test_transactions(api_client_with_auth):
-    response = api_client_with_auth.get_transactions()
+    response = api_client_with_auth("Heath93").get_transactions()
+
     assert response.status == 200
     data = response.json()
     page_data = data.get('pageData')
