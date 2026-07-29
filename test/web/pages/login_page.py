@@ -16,15 +16,15 @@ class LoginPage(BasePage):
 
     @property
     def _loc_button_login(self):
-        return self.page.locator("[data-test=\"signin-submit\"]")
+        return self.page.get_by_test_id("signin-submit")
 
     @property
     def _loc_signin_error(self):
-        return self.page.locator("[data-test=\"signin-error\"]")
+        return self.page.get_by_test_id("signin-error")
 
     @property
     def _loc_sidenav_username(self):
-        return self.page.locator("[data-test=\"sidenav-username\"]")
+        return self.page.get_by_test_id("sidenav-username")
 
     def load(self):
         self.navigate_to(f"{WEB_BASE_URL.rstrip('/')}/signin")
