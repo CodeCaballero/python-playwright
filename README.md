@@ -64,7 +64,7 @@ The app under test must be available at:
 - **API:** `http://localhost:3001`
 - 
 ### 0. Prerequisites
-- Python 3.10 or higher
+- Python 3.12 or higher
 - [uv](https://github.com/astral-sh/uv) installed
 ### 1. Clone this repository
 
@@ -97,7 +97,7 @@ Wait until both `http://localhost:3000` and `http://localhost:3001` respond.
 
 ### 4. Environment variables
 
-Defaults are set in `pytest.ini`:
+Defaults are set in `pyproject.toml`:
 
 | Variable       | Default                 |
 |:---------------|:------------------------|
