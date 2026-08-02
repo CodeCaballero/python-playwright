@@ -1,7 +1,18 @@
 name: CI
 
 on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+    paths:
+      - 'test/**'
+      - 'config/**'
+      - 'requirements.txt'
+      - 'pytest.ini'
+      - '.github/workflows/**'
   workflow_dispatch:
+
 
 jobs:
   test:
@@ -76,7 +87,9 @@ jobs:
       - name: Run tests WEB
         run: |
           echo -e "\033[92mRUN TEST WEB\033[0m"
-          pytest test/web/ -v --alluredir=allure-results
+          pytest test/web/ -v  --tracing=retain-on-failure \
+          --screenshot=only-on-failure \
+          --video=retain-on-failure--alluredir=allure-results
         env:
           WEB_BASE_URL: http://localhost:3000
           API_BASE_URL: http://localhost:3001
@@ -105,3 +118,14 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: ./allure-report
+
+      - name: Upload Playwright failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-failures
+          path: |
+            test-results/
+            allure-results/
+          if-no-files-found: ignore
+          retention-days: 7
