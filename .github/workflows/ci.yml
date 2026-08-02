@@ -25,19 +25,51 @@ jobs:
       - name: Install uv
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
 
-      - name: Install dependencies
+      - name: Cache uv dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+          restore-keys: uv-${{ runner.os }}-
+
+      - name: Install uv dependencies
         run: |
           uv sync --locked
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+          restore-keys: playwright-${{ runner.os }}-
+
+      - name: Install playwright browser dependencies
+        run: |
           uv run playwright install --with-deps chromium
 
-      - name: Install Allure CLI and Java
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Allure CLI
+        id: cache-allure
+        uses: actions/cache@v4
+        with:
+          path: /opt/allure
+          key: allure-${{ runner.os }}-2.42.0
+
+      - name: Install Allure CLI (if not cached)
+        if: steps.cache-allure.outputs.cache-hit != 'true'
         run: |
-          sudo apt update
-          sudo apt install -y openjdk-17-jre-headless
           wget https://github.com/allure-framework/allure2/releases/download/2.42.0/allure-2.42.0.tgz
           tar -xzf allure-2.42.0.tgz
           sudo mv allure-2.42.0 /opt/allure
-          sudo ln -s /opt/allure/bin/allure /usr/local/bin/allure
+
+      - name: Create Allure symlink
+        run: |
+          sudo ln -sf /opt/allure/bin/allure /usr/local/bin/allure
 
       - name: Checkout app repo
         uses: actions/checkout@v4
@@ -50,6 +82,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+
+      - name: Cache Node.js modules
+        uses: actions/cache@v4
+        with:
+          path: app/node_modules
+          key: yarn-${{ runner.os }}-${{ hashFiles('app/yarn.lock') }}
+          restore-keys: |
+            yarn-${{ runner.os }}-
 
       - name: Install Yarn
         run: npm install -g yarn
@@ -80,8 +120,6 @@ jobs:
           WEB_BASE_URL: http://localhost:3000
           API_BASE_URL: http://localhost:3001
 
-      - name: Run tests WEB
-        run: |
       - name: Run tests WEB
         run: |
           echo -e "\033[92mRUN TEST WEB\033[0m"
