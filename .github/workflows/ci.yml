@@ -8,8 +8,7 @@ on:
     paths:
       - 'test/**'
       - 'config/**'
-      - 'requirements.txt'
-      - 'pytest.ini'
+      - 'pyproject.toml'
       - '.github/workflows/**'
   workflow_dispatch:
 

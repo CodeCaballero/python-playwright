@@ -62,7 +62,10 @@ The app under test must be available at:
 
 - **Web:** `http://localhost:3000`
 - **API:** `http://localhost:3001`
-
+- 
+### 0. Prerequisites
+- Python 3.10 or higher
+- [uv](https://github.com/astral-sh/uv) installed
 ### 1. Clone this repository
 
 ```bash
@@ -73,10 +76,9 @@ cd python-playwright
 ### 2. Create a virtual environment and install dependencies
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate 
-pip install -r requirements.txt
-playwright install chromium
+uv sync
+uv run playwright install chromium
+uv run pytest
 ```
 
 ### 3. Start the Cypress Real World App

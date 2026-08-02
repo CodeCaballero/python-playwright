@@ -1,0 +1,59 @@
+[project]
+name = "python-playwright"
+version = "0.1.0"
+description = "QA automation project with Playwright and Python"
+readme = "README.md"
+authors = [
+    { name = "code", email = "caballero" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "allure-pytest==2.16.0",
+    "allure-python-commons==2.16.0",
+    "playwright==1.60.0",
+    "pytest==9.0.3",
+    "pytest-bdd==8.1.0",
+    "pytest-env==1.6.0",
+    "pytest-html==4.2.0",
+    "pytest-playwright==0.8.0",
+    "pytest-xdist==3.8.0",
+    "requests==2.34.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.9.0",
+    "mypy>=1.14.0",
+    "types-requests",
+    "pre-commit>=4.0.0",
+]
+
+[dependency-groups]
+dev = []
+
+[tool.pytest.ini_options]
+bdd_features_base_dir = "test/web/features"
+testpaths = ["test"]
+pythonpath = ["."]
+env = [
+    "WEB_BASE_URL=http://localhost:3000",
+    "API_BASE_URL=http://localhost:3001",
+]
+
+markers = [
+    "reset_db: reset the database after scenarios tagged with @reset_db",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["config", "test"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["config", "test"]
+ignore_missing_imports = true
+check_untyped_defs = true
