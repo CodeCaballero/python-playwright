@@ -22,16 +22,13 @@ jobs:
       - name: Checkout tests repo
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
 
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          playwright install --with-deps chromium
+          uv sync --locked
+          uv run playwright install --with-deps chromium
 
       - name: Install Allure CLI and Java
         run: |
@@ -104,7 +101,7 @@ jobs:
       - name: Generate Allure report
         if: always()
         run: |
-          # Copiar historial si existe
+          # Copy history if exists
           if [ -d "gh-pages/history" ]; then
             cp -r gh-pages/history allure-results/ || true
           fi
