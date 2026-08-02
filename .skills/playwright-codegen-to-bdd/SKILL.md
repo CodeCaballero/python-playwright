@@ -86,7 +86,6 @@ from test.web.pages.base_page import BasePage
 
 
 class ExamplePage(BasePage):
-
     @property
     def _loc_submit(self):
         return self.page.get_by_role("button", name="Submit")
@@ -114,6 +113,7 @@ class ExamplePage(BasePage):
 from pytest_bdd import given, when, then, parsers
 from playwright.sync_api import Page
 from test.web.pages.example_page import ExamplePage
+
 
 @when("I click the submit button")
 def click_submit(page: Page):

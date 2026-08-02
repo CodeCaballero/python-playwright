@@ -12,9 +12,11 @@ def api_client(playwright):
     yield ApiClient(api_context, base_url=base_url)
     api_context.dispose()
 
+
 @pytest.fixture
 def api_client_with_auth(api_client):
     def _api_client_with_auth(user: str):
         api_client.post_login(user, get_password_user(user))
         return api_client
+
     return _api_client_with_auth

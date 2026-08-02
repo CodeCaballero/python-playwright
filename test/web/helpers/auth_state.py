@@ -1,12 +1,14 @@
-from config.paths import AUTH_DIR
 from playwright.sync_api import Browser
-from test.web.pages.login_page import LoginPage
+
+from config.paths import AUTH_DIR
 from config.users import get_password_user
+from test.web.pages.login_page import LoginPage
+
 
 def ensure_user_auth_state(browser: Browser, username: str) -> str:
     AUTH_DIR.mkdir(parents=True, exist_ok=True)
     state_path = AUTH_DIR / f"{username.lower()}.json"
-    
+
     if not state_path.exists():
         context = browser.new_context()
         page = context.new_page()

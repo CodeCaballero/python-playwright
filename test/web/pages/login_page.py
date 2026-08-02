@@ -5,7 +5,6 @@ from test.web.pages.base_page import BasePage
 
 
 class LoginPage(BasePage):
-
     @property
     def _loc_input_username(self):
         return self.page.get_by_role("textbox", name="Username")

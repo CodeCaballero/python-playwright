@@ -7,6 +7,7 @@
 ```python
 from playwright.sync_api import Playwright, sync_playwright
 
+
 def run(playwright: Playwright) -> None:
     browser = playwright.chromium.launch(headless=False)
     context = browser.new_context()
@@ -15,8 +16,8 @@ def run(playwright: Playwright) -> None:
     page.get_by_role("textbox", name="Username").fill("Reuben97")
     page.get_by_role("textbox", name="Password").fill("s3cret")
     page.locator("button[type='submit']").click()
-    page.locator("[data-test=\"sidenav-username\"]").click()
-    expect(page.locator("[data-test=\"sidenav-username\"]")).to_contain_text("Reuben97")
+    page.locator('[data-test="sidenav-username"]').click()
+    expect(page.locator('[data-test="sidenav-username"]')).to_contain_text("Reuben97")
     context.close()
     browser.close()
 ```
@@ -80,7 +81,6 @@ from test.web.pages.base_page import BasePage
 
 
 class BankAccountsPage(BasePage):
-
     @property
     def _loc_nav_bank_accounts(self):
         return self.page.get_by_role("link", name="Bank Accounts")

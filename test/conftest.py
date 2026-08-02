@@ -7,6 +7,7 @@ pytest_plugins = [
 ]
 
 import pytest
+
 from config.settings import API_BASE_URL
 from test.api.helpers.database_api import DatabaseApi
 
@@ -14,6 +15,7 @@ from test.api.helpers.database_api import DatabaseApi
 @pytest.fixture
 def database_api():
     return DatabaseApi(API_BASE_URL)
+
 
 @pytest.fixture(autouse=True)
 def reset_db_after_test(request):
@@ -25,13 +27,16 @@ def reset_db_after_test(request):
     if database_api is not None:
         database_api.reset_db()
 
+
 @pytest.fixture
 def create_user_with_builder(database_api):
     def _create_user(builder: UserBuilder):
         user_data = builder.build()
         database_api.create_user(user_data)
         return user_data
+
     return _create_user
+
 
 @pytest.fixture(scope="session", autouse=True)
 def configure_playwright_test_id_attribute(playwright):

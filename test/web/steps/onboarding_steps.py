@@ -1,6 +1,6 @@
 from playwright.sync_api import Page
-from pytest_bdd import scenario, given, when, then
-from pytest_playwright.pytest_playwright import page
+from pytest_bdd import then
+
 from test.web.pages.onboarding_page import OnboardingPage
 
 
