@@ -82,10 +82,14 @@ jobs:
 
       - name: Run tests WEB
         run: |
+      - name: Run tests WEB
+        run: |
           echo -e "\033[92mRUN TEST WEB\033[0m"
-          uv run pytest test/web/ -v  --tracing=retain-on-failure \
-          --screenshot=only-on-failure \
-          --video=retain-on-failure--alluredir=allure-results
+          uv run pytest test/web/ -v \
+            --tracing=retain-on-failure \
+            --screenshot=only-on-failure \
+            --video=retain-on-failure \
+            --alluredir=allure-results
         env:
           WEB_BASE_URL: http://localhost:3000
           API_BASE_URL: http://localhost:3001
