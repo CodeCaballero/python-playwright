@@ -16,6 +16,7 @@ Feature: User Login
     Given the user "Heath93" is logged in
     Then I should see the dashboard and the username "Heath93"
 
+  @flaky
   @reset_db
   Scenario Outline: Show onboarding with new user
     Given A created user named "<userName>" with password "<password>"

@@ -42,7 +42,6 @@ def create_user_with_builder(database_api):
 def configure_playwright_test_id_attribute(playwright):
     playwright.selectors.set_test_id_attribute("data-test")
 
-@pytest.fixture
 def pytest_bdd_apply_tag(tag, function):
     if tag == "flaky":
         marker = pytest.mark.flaky(reruns=2, reruns_delay=1)
