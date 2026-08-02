@@ -42,7 +42,11 @@ This project uses as example the Cypress Real World App, a popular open-source p
 | **pytest-bdd**         | BDD integration with Gherkin scenarios                 |
 | **pytest-playwright**  | Browser fixtures and Playwright integration for pytest |
 
+## Allure reports
 
+Allure reports are generated and published in https://codecaballero.github.io/python-playwright/
+
+![img.png](assets/img.png)
 
 ## Installation
 
