@@ -115,7 +115,7 @@ jobs:
       - name: Run tests API
         run: |
           echo -e "\033[92mRUN TEST API\033[0m"
-          uv run pytest test/api/ -v --alluredir=allure-results
+          uv run pytest test/api/ -n auto -v --alluredir=allure-results
         env:
           WEB_BASE_URL: http://localhost:3000
           API_BASE_URL: http://localhost:3001
