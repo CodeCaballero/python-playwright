@@ -1,5 +1,4 @@
 import pytest
-
 from config.settings import API_BASE_URL
 from config.users import get_password_user
 from test.api.helpers.api_client import ApiClient

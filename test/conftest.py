@@ -7,8 +7,8 @@ pytest_plugins = [
 ]
 
 import pytest
-
 from config.settings import API_BASE_URL
+
 from test.api.helpers.database_api import DatabaseApi
 
 

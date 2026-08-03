@@ -1,6 +1,6 @@
+from config.settings import WEB_BASE_URL
 from playwright.sync_api import expect
 
-from config.settings import WEB_BASE_URL
 from test.web.pages.base_page import BasePage
 
 

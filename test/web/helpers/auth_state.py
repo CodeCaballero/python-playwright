@@ -1,7 +1,7 @@
-from playwright.sync_api import Browser
-
 from config.paths import AUTH_DIR
 from config.users import get_password_user
+from playwright.sync_api import Browser
+
 from test.web.pages.login_page import LoginPage
 
 
