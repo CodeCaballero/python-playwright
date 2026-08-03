@@ -10,8 +10,8 @@
 
 
 ## Overview
-This test automation framework combines Playwright, pytest, and pytest-bdd to create a comprehensive solution for testing web applications. 
-This project uses as example the Cypress Real World App, a popular open-source project that provides a realistic web application for testing purposes. 
+This test automation framework combines Playwright, pytest, and pytest-bdd to create a comprehensive solution for testing web applications.
+This project uses as example the Cypress Real World App, a popular open-source project that provides a realistic web application for testing purposes.
 
 ## Key Features
 
@@ -20,13 +20,14 @@ This project uses as example the Cypress Real World App, a popular open-source p
 - **Thin BDD steps** — Steps only orchestrate; all Playwright logic lives in page objects
 - **Resilient locators** — Prefer `get_by_role` and `get_by_test_id` (`data-test`) (modified playwright configuration)
 - **Auth state reuse** — Login once, persist `storage_state` under `.auth/` for faster scenarios
-- **Test data seeding** — Using class `UserBuilder` to create users via API 
+- **Test data seeding** — Using class `UserBuilder` to create users via API
 - **Test isolation** — `@reset_db` marker reseeds the database after tagged scenarios
 - **Centralized config** — Base URLs and seed users via env vars / `config/`
 - **CI/CD pipeline** — Optimized with dependency caching
 - **Reporting** — Allure reports published to GitHub Pages; Playwright traces on failure
 - **BDD skills** — Skill to convert specification in natural language into framework-compliant tests
 - **Flaky retries** — By default tests do not rerun. Only scenarios marked @flaky retry up to 2 times with 1s delay
+- **Parallelization** — Tests run in parallel to speed up execution time with python-xdist
 
 ##  Tech Stack
 
@@ -63,7 +64,7 @@ The app under test must be available at:
 
 - **Web:** `http://localhost:3000`
 - **API:** `http://localhost:3001`
-- 
+-
 ### 0. Prerequisites
 - Python 3.12 or higher
 - [uv](https://github.com/astral-sh/uv) installed
