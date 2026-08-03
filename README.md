@@ -26,6 +26,7 @@ This project uses as example the Cypress Real World App, a popular open-source p
 - **CI/CD pipeline** — Optimized with dependency caching
 - **Reporting** — Allure reports published to GitHub Pages; Playwright traces on failure
 - **BDD skills** — Skill to convert specification in natural language into framework-compliant tests
+- **Flaky retries** — By default tests do not rerun. Only scenarios marked @flaky retry up to 2 times with 1s delay
 
 ##  Tech Stack
 
