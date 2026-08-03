@@ -23,7 +23,7 @@ This project uses as example the Cypress Real World App, a popular open-source p
 - **Test data seeding** — Using class `UserBuilder` to create users via API 
 - **Test isolation** — `@reset_db` marker reseeds the database after tagged scenarios
 - **Centralized config** — Base URLs and seed users via env vars / `config/`
-- **CI/CD pipeline** — GitHub Actions runs API + Web suites
+- **CI/CD pipeline** — Optimized with dependency caching
 - **Reporting** — Allure reports published to GitHub Pages; Playwright traces on failure
 - **BDD skills** — Skill to convert specification in natural language into framework-compliant tests
 
