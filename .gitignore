@@ -16,4 +16,4 @@ allure-results/
 node_modules/
 package-lock.json
 package.json
-app/
+diff.txt

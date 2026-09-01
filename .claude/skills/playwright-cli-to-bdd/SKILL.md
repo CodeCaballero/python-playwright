@@ -1,7 +1,7 @@
 ---
 name: playwright-cli-to-bdd
 description: >
-  Reads a PR diff (default app/diff.txt) to detect new/changed backend routes
+  Reads a PR diff (default ./diff.txt) to detect new/changed backend routes
   and UI features, then drives the app with `playwright-cli` (the
   agent-oriented CLI, `@playwright/cli` — not `playwright codegen`/`open`)
   against the running app to confirm the real selectors/DOM/response shape
@@ -18,7 +18,7 @@ description: >
 
 # Diff → QA Framework (BDD + API)
 
-**Input source:** a PR diff file, default `app/diff.txt` (git diff of the app under test — see `README.md` for how it's cloned into `app/`). The diff tells you **what** changed and roughly **where** — it is never trusted as the final source of truth for a selector.
+**Input source:** a PR diff file, default `/diff.txt` (git diff of the app under test — see `README.md` for how it's cloned into `/`). The diff tells you **what** changed and roughly **where** — it is never trusted as the final source of truth for a selector.
 
 **Two automated touchpoints, both agent-driven, neither is `codegen`:**
 
@@ -39,15 +39,11 @@ This skill lives at `.claude/skills/playwright-cli-to-bdd/SKILL.md` — that's t
 
 That's the whole invocation — Step 3 (`playwright-cli` live verification) and Step 9 (`pytest` validation) run automatically as part of the workflow below, no separate call needed from you.
 
-Diff path defaults to `app/diff.txt`. To point at a different one, pass it as the argument — it arrives as `$ARGUMENTS`, use that path instead of the default in Step 1:
+Diff path defaults to `/diff.txt`. To point at a different one, pass it as the argument — it arrives as `$ARGUMENTS`, use that path instead of the default in Step 1:
 
 ```
 /playwright-cli-to-bdd path/to/other-diff.txt
 ```
-
-**Before invoking:** the app must be running at `WEB_BASE_URL` / `API_BASE_URL` (`cd app && yarn dev`, per `README.md`) — Step 2 checks this, but Steps 3 and 9 can't do anything useful if it's down. Make sure `app/diff.txt` (or your custom path) reflects the PR/branch you want covered — regenerate it yourself first if it's stale, e.g. `git -C app diff main... > app/diff.txt`.
-
----
 
 ## Scope: which path does the diff need?
 
