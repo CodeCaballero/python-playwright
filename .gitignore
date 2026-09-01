@@ -7,9 +7,12 @@ bin/
 .idea/
 logs/
 reports/
+test-results/
+allure-results/
 .auth
 .playwright-cli/
 .python-version
 node_modules/
 package-lock.json
 package.json
+app/
