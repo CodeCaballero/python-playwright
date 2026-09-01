@@ -1,12 +1,15 @@
 
 # 🎭 Playwright Automation Framework
 
+<!-- badges-start -->
+[![CI](https://img.shields.io/github/actions/workflow/status/CodeCaballero/python-playwright/ci.yml?branch=main&style=flat&logo=github&label=CI)](https://github.com/CodeCaballero/python-playwright/actions/workflows/ci.yml)
+[![Lint](https://img.shields.io/github/actions/workflow/status/CodeCaballero/python-playwright/lint.yml?style=flat&logo=github&label=Lint)](https://github.com/CodeCaballero/python-playwright/actions/workflows/lint.yml)
 [![Playwright](https://img.shields.io/badge/Playwright-1.60-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev/python/)
 [![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![pytest](https://img.shields.io/badge/pytest-9.0-0A9EDC?logo=pytest&logoColor=white)](https://docs.pytest.org/)
 [![pytest-bdd](https://img.shields.io/badge/pytest--bdd-8.1-23D96C?logo=cucumber&logoColor=white)](https://pytest-bdd.readthedocs.io/)
-[![Allure](https://img.shields.io/badge/Allure-Reports-FF6A5C)](https://allurereport.org/)
-[![GitHub Actions](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)](https://github.com/features/actions)
+[![Allure Report](https://img.shields.io/badge/Allure%20Report-online-FF6A5C?logo=qameta&logoColor=white)](https://codecaballero.github.io/python-playwright/)
+<!-- badges-end -->
 
 
 ## Overview
@@ -33,18 +36,19 @@ This project uses as example the Cypress Real World App, a popular open-source p
 
 ##  Tech Stack
 
-| Technology             | Purpose                                                |
-|:-----------------------|:-------------------------------------------------------|
-| **Playwright**         | E2E test runner and automation library                 |
-| **Requests**           | API testing and backend test setup                     |
-| **Python**             | Primary programming language                           |
-| **Gherkin (Cucumber)** | BDD syntax for writing test scenarios                  |
-| **Git/GitHub**         | Version control and project hosting                    |
-| **Github Actions**     | Continuous integration pipeline                        |
-| **Github Pages**       | Artifact repository for Alure reports                  |
-| **Pytest**             | Test runner and orchestration                          |
-| **pytest-bdd**         | BDD integration with Gherkin scenarios                 |
-| **pytest-playwright**  | Browser fixtures and Playwright integration for pytest |
+| Technology             | Purpose                                                              |
+|:-----------------------|:---------------------------------------------------------------------|
+| **Claude Code**        | AI-powered coding assistant for generating and refining test scripts |
+| **Playwright-cli**     | Command interface use by claude code to control the browser          |
+| **Playwright**         | E2E test runner and automation library                               |
+| **Requests**           | API testing and backend test setup                                   |
+| **Python**             | Primary programming language                                         |
+| **Gherkin (Cucumber)** | BDD syntax for writing test scenarios                                |
+| **Github Actions**     | Continuous integration pipeline                                      |
+| **Github Pages**       | Artifact repository for Alure reports                                |
+| **Pytest**             | Test runner and orchestration                                        |
+| **pytest-bdd**         | BDD integration with Gherkin scenarios                               |
+| **pytest-playwright**  | Browser fixtures and Playwright integration for pytest               |
 
 
 
@@ -80,7 +84,6 @@ cd python-playwright
 ```bash
 uv sync
 uv run playwright install chromium
-uv run pytest
 ```
 
 ### 3. Start the Cypress Real World App
@@ -91,8 +94,6 @@ Execute the script, passing the branch you want to test as a parameter (it must 
 ```
 
 `yarn dev` runs in the foreground, so open a new terminal and wait until both `http://localhost:3000` and `http://localhost:3001` respond before continuing.
-
-Note: the script reseeds the database (`yarn db:seed:dev`) on every run, so `storage_state` files left over under `.auth/` from a previous deploy may go stale — delete them if you hit unexpected onboarding/login screens.
 
 ### 4. Generation of the code
 
