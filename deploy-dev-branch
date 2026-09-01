@@ -1,0 +1,18 @@
+#!/bin/bash
+set -e
+if [ -z "$1" ]; then
+    echo "Use: $0 <branch>"
+    exit 1
+fi
+
+EXEC_DIR=$(pwd)
+TEMP_DIR="$(mktemp -d)"
+git clone https://github.com/CodeCaballero/cypress-realworld-app.git "$TEMP_DIR/app"
+cd "$TEMP_DIR/app"
+
+git diff main origin/"$1" > "$EXEC_DIR/diff.txt"
+yarn install --frozen-lockfile
+yarn db:seed:dev
+
+yarn dev
+
