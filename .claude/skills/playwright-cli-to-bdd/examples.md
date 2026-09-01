@@ -1,13 +1,14 @@
 # Diff → Framework Examples
 
-Examples 1-3 show converting an already-captured Playwright/codegen snippet into
-BDD (useful when a human pasted one in, e.g. from the manual `playwright codegen`
-fallback). Example 4 shows the default flow: reading `app/diff.txt` directly and
-drafting the code without ever running codegen.
+Examples 1-3 show the mechanical part — turning a confirmed interaction into
+framework code (Steps 4-8) — using a plain snippet as the starting point so the
+conversion rules are easy to follow in isolation. Example 4 is the full flow as
+this skill actually runs it end to end: diff → live verification script → framework
+code → `pytest` validation, with no codegen/recording anywhere.
 
 ## Example 1 — Login (reuse existing steps)
 
-### Input (codegen)
+### Input (a confirmed interaction, already verified live)
 
 ```python
 from playwright.sync_api import Playwright, sync_playwright
@@ -42,7 +43,7 @@ Scenario: Successful login with valid credentials
 
 ## Example 2 — New flow (bank account navigation)
 
-### Input (codegen)
+### Input (confirmed interaction, e.g. from a Step 3 verification script)
 
 ```python
 page.goto("http://localhost:3000/")
@@ -55,7 +56,7 @@ expect(page.get_by_role("heading", name="Bank Accounts")).to_be_visible()
 
 ### Step reuse analysis
 
-| Codegen action | Existing step? | Action |
+| Confirmed action | Existing step? | Action |
 |----------------|----------------|--------|
 | goto + fill + click login | Yes — login steps | Reuse in Background |
 | click Bank Accounts link | No | New step + page method |
@@ -134,18 +135,18 @@ pytest_plugins = [
 
 ---
 
-## Example 3 — Locator upgrade from weak codegen
+## Example 3 — Locator upgrade from a weak first guess
 
-Codegen often produces brittle selectors. Upgrade while converting:
+A naive DOM inspection (e.g. reading raw HTML/CSS classes off `page.content()` instead of querying by role) tends to produce brittle selectors. Upgrade before committing to a `_loc_*` property — re-run Step 3's verification script with the stronger locator to confirm it still resolves to exactly one element:
 
-| Codegen (weak) | Framework (strong) |
+| Weak first guess | Framework (strong) |
 |----------------|-------------------|
 | `page.locator("#root > div > button")` | `page.get_by_role("button", name="Sign in")` |
 | `page.locator(".MuiButton-root")` | `page.get_by_role("button", name="...")` |
 | `page.locator("input:nth-child(2)")` | `page.get_by_role("textbox", name="Password")` |
 | `page.locator("[data-test=foo]")` | Keep — `page.locator('[data-test="foo"]')` |
 
-Always re-check codegen locators against accessible roles before committing to `_loc_*` properties.
+Always re-check a locator against accessible roles before committing to `_loc_*` properties.
 
 ---
 
@@ -188,6 +189,43 @@ diff --git a/src/components/TransactionListFilters.tsx b/src/components/Transact
 - New endpoint `GET /transactions/export`, auth-required, returns `text/csv` → **API path**.
 - New button `data-test="transaction-list-export-button"` on the personal transactions filters, wired to call that endpoint → **Web path**.
 - Both paths needed: one API test for the endpoint contract, one BDD scenario for the UI flow that triggers it.
+
+### Step 3 — Verify live
+
+The diff shows `data-test="transaction-list-export-button"`, but not whether it actually renders (it's behind `{onExport && ...}`) or whether it's unique on the page. Script it:
+
+```python
+from playwright.sync_api import sync_playwright
+from config.settings import WEB_BASE_URL
+
+with sync_playwright() as p:
+    browser = p.chromium.launch()
+    page = browser.new_context(storage_state=".auth/heath93.json").new_page()
+    page.goto(f"{WEB_BASE_URL}/personal")
+
+    export_btn = page.get_by_test_id("transaction-list-export-button")
+    print("count:", export_btn.count())      # -> 1, confirmed
+    print("visible:", export_btn.is_visible())  # -> True
+
+    browser.close()
+```
+
+And the endpoint:
+
+```python
+from playwright.sync_api import sync_playwright
+from config.settings import API_BASE_URL
+
+with sync_playwright() as p:
+    ctx = p.request.new_context(base_url=API_BASE_URL)
+    ctx.post("/login", data={"username": "Heath93", "password": "s3cret"})
+    r = ctx.get("/transactions/export")
+    print(r.status, dict(r.headers))
+    # -> 200 {'content-type': 'text/csv', ...}
+    ctx.dispose()
+```
+
+Both confirmed. If the button hadn't shown up (`count() == 0`), the next move would be reading `TransactionsContainer.tsx` in `app/src/` to see why `onExport` isn't reaching that screen — not guessing a different selector.
 
 ### Step 4 — Reuse check
 

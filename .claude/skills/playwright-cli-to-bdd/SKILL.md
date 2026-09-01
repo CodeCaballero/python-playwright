@@ -2,25 +2,49 @@
 name: playwright-cli-to-bdd
 description: >
   Reads a PR diff (default app/diff.txt) to detect new/changed backend routes
-  and UI features, drafts the Playwright interaction code directly from the
-  diff, and converts it into framework-conformant tests: pytest-bdd (features,
-  steps, page objects) for frontend changes, plain pytest + ApiClient for
-  backend-only changes. Validates the result by running the real test suite
-  with Playwright CLI (pytest-playwright) against the running app — no manual
-  clicks or recording. Reuses existing steps/page objects/ApiClient methods
-  whenever possible. Use when a PR diff introduces backend or frontend changes
-  and you need to generate test coverage for them.
+  and UI features, then drives Playwright itself — headless, scripted, no
+  recording — against the running app to confirm the real selectors/DOM/
+  response shape before writing anything. Converts the confirmed interaction
+  into framework-conformant tests: pytest-bdd (features, steps, page objects)
+  for frontend changes, plain pytest + ApiClient for backend-only changes.
+  Validates the result by running the real test suite with Playwright CLI
+  (pytest-playwright) against the running app. Every touchpoint with
+  Playwright is CLI/script-driven and agent-run — never interactive codegen,
+  never a human recording clicks. Reuses existing steps/page objects/
+  ApiClient methods whenever possible. Use when a PR diff introduces backend
+  or frontend changes and you need to generate test coverage for them.
 ---
 
 # Diff → QA Framework (BDD + API)
 
-**Input source:** a PR diff file, default `app/diff.txt` (git diff of the app under test — see `README.md` for how it's cloned into `app/`).
+**Input source:** a PR diff file, default `app/diff.txt` (git diff of the app under test — see `README.md` for how it's cloned into `app/`). The diff tells you **what** changed and roughly **where** — it is never trusted as the final source of truth for a selector.
 
-**Code generation:** AI-driven. Read the diff and draft the interaction/request code directly from it — this app exposes `data-test` attributes, ARIA roles/labels, and route/endpoint names right in the diff (see `examples.md` Example 4), so there is no need to click through the UI to discover selectors.
+**Two automated touchpoints with Playwright, both agent-driven, neither is `codegen`:**
 
-**Validation:** Playwright CLI, via `pytest-playwright` (`uv run pytest ...`), run against the real app to confirm the generated tests actually pass. This is the only point where a CLI tool runs — it never generates code, it only proves the generated code works. `uv run playwright codegen $WEB_BASE_URL` remains available as a manual, human-driven fallback (see "When the diff isn't enough" below) but is never something this skill runs unattended.
+1. **Live verification (Step 3)** — a throwaway headless script, written by the agent and run with `uv run python <script>.py`, that opens the real running app and proves each candidate locator resolves to exactly one element (or, for the API side, that the real endpoint returns the expected shape). This replaces guessing a selector from JSX in the diff — the diff gives you the lead (`data-test="x"`, a button's visible text, a route path), the live script gives you the proof.
+2. **Final validation (Step 9)** — running the generated framework tests for real with `uv run pytest ...` (Playwright CLI under `pytest-playwright`) against the same running app.
+
+`playwright codegen` / `playwright open` are **not used anywhere in this skill** — they require a human clicking through the app, and every step here must be runnable unattended by the agent.
 
 **Goal:** generate tests that follow the existing layered architecture and conventions — never paste raw Playwright/request code directly into steps, features, or test files.
+
+## Usage
+
+This skill lives at `.claude/skills/playwright-cli-to-bdd/SKILL.md` — that's the path Claude Code auto-discovers project skills from (`.skills/` at the repo root, without `.claude/`, is **not** scanned and will show as an unknown command).
+
+```
+/playwright-cli-to-bdd
+```
+
+That's the whole invocation — Step 3 (live verification script) and Step 9 (`pytest` validation) run automatically as part of the workflow below, no separate Playwright CLI call needed from you.
+
+Diff path defaults to `app/diff.txt`. To point at a different one, pass it as the argument — it arrives as `$ARGUMENTS`, use that path instead of the default in Step 1:
+
+```
+/playwright-cli-to-bdd path/to/other-diff.txt
+```
+
+**Before invoking:** the app must be running at `WEB_BASE_URL` / `API_BASE_URL` (`cd app && yarn dev`, per `README.md`) — Step 2 checks this, but Steps 3 and 9 can't do anything useful if it's down. Make sure `app/diff.txt` (or your custom path) reflects the PR/branch you want covered — regenerate it yourself first if it's stale, e.g. `git -C app diff main... > app/diff.txt`.
 
 ---
 
@@ -59,10 +83,10 @@ Copy this checklist and track progress — each item maps 1:1 to a section below
 ```
 [ ] 1.  Read the diff → classify path (API / Web / Both) and list what changed
 [ ] 2.  Check prerequisites — is the app running at WEB_BASE_URL / API_BASE_URL?
-[ ] 3.  Draft the interaction/request code straight from the diff
+[ ] 3.  Verify live — script the candidate selectors/endpoint against the running app
 [ ] 4.  Inventory existing steps/pages (web) or ApiClient methods (api) — reuse first
 [ ] 5.  Decide: extend an existing Page Object/ApiClient vs create a new one
-[ ] 6.  Implement — locators/actions (web) or client methods (api)
+[ ] 6.  Implement — locators/actions (web) or client methods (api), using only what Step 3 confirmed
 [ ] 7.  Write the Gherkin feature (web) or the pytest test function (api)
 [ ] 8.  Wire up — test_scenarios.py + conftest.py pytest_plugins (web only)
 [ ] 9.  Validate — run the new test(s) with Playwright CLI against the live app
@@ -88,20 +112,55 @@ curl -sf $API_BASE_URL >/dev/null && echo "api up" || echo "api down"
 
 If it's down, tell the user to start it per `README.md` (`cd app && yarn dev`) before Step 9 — you can still draft the code without it running, but you cannot validate.
 
-### Step 3 — Draft the code from the diff
+### Step 3 — Verify live: script it, don't guess it
 
-Read the diff line by line and translate it directly, without running anything:
+The diff gives you a *lead*, never a confirmed locator. Turn each lead into a candidate, then prove it against the running app with a small headless script — no interactive tool, no recording, just the Playwright API called from a normal Python file you write and run yourself.
 
-- `data-test="foo-bar"` in a new component → `page.get_by_test_id("foo-bar")`.
-- A new `<Button>` with visible text → `page.get_by_role("button", name="...")`.
-- A new `router.get("/path", ...)` → `request.get(f"{base_url}/path")`, note the auth/validation middleware for status-code assertions.
-- A response shape you can see in the diff (e.g., a new serializer/CSV builder) → what to assert on.
+**Web — confirm the candidate locator resolves to exactly one element, on the real page, in its real state (e.g. logged in):**
 
-#### When the diff isn't enough
+```python
+# scratch verification script — not committed, delete when done
+from playwright.sync_api import sync_playwright
+from config.settings import WEB_BASE_URL
 
-If the diff references a component/flow whose markup isn't shown (e.g., a backend change with no visible frontend, or a UI change that composes an existing component you can't see the rendered output of), don't guess selectors. Two options, in order of preference:
-1. Read the actual source file in `app/` (it's a full checkout, not just the diff) to find the real `data-test`/role.
-2. If still unclear, tell the user to run `uv run playwright codegen $WEB_BASE_URL` themselves and paste back the generated snippet — this skill does not drive that command itself, it requires a human clicking through the app.
+with sync_playwright() as p:
+    browser = p.chromium.launch()
+    page = browser.new_context(storage_state=".auth/heath93.json").new_page()
+    page.goto(f"{WEB_BASE_URL}/personal")
+
+    candidate = page.get_by_test_id("transaction-list-export-button")
+    print("count:", candidate.count())          # must be 1
+    print("visible:", candidate.is_visible())
+    print("text:", candidate.inner_text())
+
+    browser.close()
+```
+
+Run it with `uv run python <script>.py` (Step 2 must have confirmed the app is up first). Reuse an existing `.auth/*.json` from `test/web/helpers/auth_state.py` for logged-in state instead of logging in manually in the script. If `count()` isn't 1, or the diff's `data-test` doesn't actually appear at runtime (conditional rendering, a wrapper component, a typo), inspect `page.content()` or narrow with `page.get_by_role(...)` until you find the real one — never fall back to a guessed CSS selector.
+
+**API — confirm the real endpoint, status code, and response shape** (a request script, or `curl`, both count as "scripted" — pick whichever is faster):
+
+```bash
+curl -s -i -b "session=<cookie-from-a-logged-in-run>" "$API_BASE_URL/transactions/export"
+```
+
+or, staying inside the framework's own client for a closer approximation:
+
+```python
+from playwright.sync_api import sync_playwright
+from config.settings import API_BASE_URL
+
+with sync_playwright() as p:
+    ctx = p.request.new_context(base_url=API_BASE_URL)
+    ctx.post("/login", data={"username": "Heath93", "password": "s3cret"})
+    r = ctx.get("/transactions/export")
+    print(r.status, dict(r.headers))
+    ctx.dispose()
+```
+
+Only once Step 3 has actually printed a confirmed count/status/shape do you move on — Step 6 implements exactly what was confirmed here, nothing inferred beyond it.
+
+If the app isn't running (Step 2 was "down"), you cannot complete this step — say so and stop; don't draft code against an unverified guess.
 
 ### Step 4 — Reuse existing code (mandatory before writing anything new)
 
@@ -122,6 +181,8 @@ Anti-pattern: paraphrasing an existing step or duplicating an `ApiClient` method
 - **API:** add a method to `ApiClient` for any new endpoint, regardless of domain — it's a flat client, not per-domain. Put the test itself in `test/api/<domain>/test_<domain>.py`, creating the domain folder only if genuinely new.
 
 ### Step 6 — Implement
+
+Use only what Step 3 actually confirmed — the script's printed `count`/`status`/shape, not what the diff seemed to imply.
 
 **Web page object:**
 
@@ -221,9 +282,9 @@ pytest_plugins = [
 
 API tests need no wiring — pytest discovers them by file/function name under `testpaths`.
 
-### Step 9 — Validate with Playwright CLI (mandatory, this is the automatable check)
+### Step 9 — Validate with Playwright CLI (mandatory, this is the second and final automatable check)
 
-This is the one step where a CLI tool actually runs — it proves the drafted code works against the real app, catching wrong selectors, wrong status codes, or a misread diff before handing anything back.
+Step 3 verified the pieces in isolation; this step proves the assembled framework code — the actual page object/steps/feature or ApiClient/test — works end to end.
 
 ```bash
 # Web — target only the new scenario, keep artifacts on failure
@@ -233,7 +294,9 @@ uv run pytest test/web/ -k "<new scenario keyword>" -v --tracing=retain-on-failu
 uv run pytest test/api/<domain>/test_<domain>.py -v
 ```
 
-If it fails: re-read the diff/source for the actual selector or response shape — don't loosen the assertion to make it pass. If the app isn't running (Step 2 was "down"), say so instead of fabricating a pass.
+If it fails: go back to Step 3 and re-verify against the live app — don't loosen the assertion to make it pass. If the app isn't running (Step 2 was "down"), say so instead of fabricating a pass.
+
+Delete any scratch script from Step 3 once Step 9 passes — it was for verification only, it never gets committed.
 
 ### Step 10 — Quality gates
 
@@ -244,11 +307,13 @@ Before finishing:
 - [ ] Existing steps/page methods/`ApiClient` methods reused wherever possible — list which were reused vs. new
 - [ ] New step text is generic enough for future scenarios
 - [ ] `pytest --collect-only test/web/` (and `test/api/` if touched) collects without errors
+- [ ] Step 3's live check actually ran and printed a confirmed result — not just read from the diff
 - [ ] Step 9's validation run actually passed against the live app — state the command and result, don't just claim it
+- [ ] No leftover scratch verification script committed
 
-## Codegen → framework mapping (quick reference)
+## Diff lead → confirmed pattern → framework mapping (quick reference)
 
-| Diff/codegen pattern | Web: Page method | Typical step | API: ApiClient method |
+| Diff/live-check pattern | Web: Page method | Typical step | API: ApiClient method |
 |---|---|---|---|
 | `goto(url)` | `load()` | `Given I am on the <page> page` | — |
 | `data-test="x"` on new element | `_loc_x` property | — | — |
