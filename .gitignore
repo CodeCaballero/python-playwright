@@ -11,6 +11,7 @@ test-results/
 allure-results/
 .auth
 .playwright-cli/
+.playwright/
 .python-version
 node_modules/
 package-lock.json

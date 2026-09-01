@@ -3,8 +3,9 @@
 Examples 1-3 show the mechanical part — turning a confirmed interaction into
 framework code (Steps 4-8) — using a plain snippet as the starting point so the
 conversion rules are easy to follow in isolation. Example 4 is the full flow as
-this skill actually runs it end to end: diff → live verification script → framework
-code → `pytest` validation, with no codegen/recording anywhere.
+this skill actually runs it end to end: diff → live verification via
+`playwright-cli` → framework code → `pytest` validation, with no
+codegen/recording anywhere.
 
 ## Example 1 — Login (reuse existing steps)
 
@@ -43,7 +44,7 @@ Scenario: Successful login with valid credentials
 
 ## Example 2 — New flow (bank account navigation)
 
-### Input (confirmed interaction, e.g. from a Step 3 verification script)
+### Input (confirmed interaction, e.g. from Step 3's `playwright-cli` verification)
 
 ```python
 page.goto("http://localhost:3000/")
@@ -137,7 +138,7 @@ pytest_plugins = [
 
 ## Example 3 — Locator upgrade from a weak first guess
 
-A naive DOM inspection (e.g. reading raw HTML/CSS classes off `page.content()` instead of querying by role) tends to produce brittle selectors. Upgrade before committing to a `_loc_*` property — re-run Step 3's verification script with the stronger locator to confirm it still resolves to exactly one element:
+A naive DOM inspection (e.g. reading raw HTML/CSS classes off `page.content()` instead of querying by role) tends to produce brittle selectors. Upgrade before committing to a `_loc_*` property — re-run Step 3's `playwright-cli find`/`snapshot` check with the stronger locator to confirm it still resolves to exactly one element:
 
 | Weak first guess | Framework (strong) |
 |----------------|-------------------|
@@ -192,40 +193,43 @@ diff --git a/src/components/TransactionListFilters.tsx b/src/components/Transact
 
 ### Step 3 — Verify live
 
-The diff shows `data-test="transaction-list-export-button"`, but not whether it actually renders (it's behind `{onExport && ...}`) or whether it's unique on the page. Script it:
+The diff shows `data-test="transaction-list-export-button"`, but not whether it actually renders (it's behind `{onExport && ...}`) or whether it's unique on the page. Drive it with `playwright-cli`:
 
-```python
-from playwright.sync_api import sync_playwright
-from config.settings import WEB_BASE_URL
+```bash
+playwright-cli open http://localhost:3000 --no-headed
+playwright-cli state-load .auth/heath93.json
+playwright-cli goto http://localhost:3000/personal
 
-with sync_playwright() as p:
-    browser = p.chromium.launch()
-    page = browser.new_context(storage_state=".auth/heath93.json").new_page()
-    page.goto(f"{WEB_BASE_URL}/personal")
+playwright-cli find "Export CSV"
+# -> Found 1 match for "Export CSV":
+#    button "Export CSV" [ref=f1e100] [cursor=pointer]
 
-    export_btn = page.get_by_test_id("transaction-list-export-button")
-    print("count:", export_btn.count())      # -> 1, confirmed
-    print("visible:", export_btn.is_visible())  # -> True
+playwright-cli eval "el => el.getAttribute('data-test')" f1e100
+# -> "transaction-list-export-button"   (matches the diff's lead)
 
-    browser.close()
+playwright-cli click f1e100
+# -> Downloading file transactions.csv ...
+#    Downloaded file transactions.csv to ".playwright-cli/transactions.csv"
+
+playwright-cli requests
+# -> 144. [GET] http://localhost:3001/transactions/export => [200] OK
+
+playwright-cli request 144
+# -> content-type: text/csv; charset=utf-8
+#    content-disposition: attachment; filename="transactions.csv"
 ```
 
-And the endpoint:
+Both the locator and the endpoint are confirmed by the same session — same click that resolves the button also triggers the real download and the real API call, so there's no separate script needed for the two halves. If the button hadn't shown up (`find` reporting 0 matches), the next move would be reading `TransactionsContainer.tsx` in `app/src/` to see why `onExport` isn't reaching that screen — not guessing a different selector.
 
-```python
-from playwright.sync_api import sync_playwright
-from config.settings import API_BASE_URL
+To confirm the 401-unauthenticated case (or any API check with no matching UI action), reuse the open session instead of opening a new one:
 
-with sync_playwright() as p:
-    ctx = p.request.new_context(base_url=API_BASE_URL)
-    ctx.post("/login", data={"username": "Heath93", "password": "s3cret"})
-    r = ctx.get("/transactions/export")
-    print(r.status, dict(r.headers))
-    # -> 200 {'content-type': 'text/csv', ...}
-    ctx.dispose()
+```bash
+playwright-cli cookie-clear
+playwright-cli eval "async () => { const r = await fetch('http://localhost:3001/transactions/export', {credentials: 'include'}); return r.status; }"
+# -> 401
+
+playwright-cli close
 ```
-
-Both confirmed. If the button hadn't shown up (`count() == 0`), the next move would be reading `TransactionsContainer.tsx` in `app/src/` to see why `onExport` isn't reaching that screen — not guessing a different selector.
 
 ### Step 4 — Reuse check
 
