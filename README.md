@@ -10,11 +10,13 @@
 
 
 ## Overview
-This test automation framework combines Playwright, pytest, and pytest-bdd to create a comprehensive solution for testing web applications.
+This test automation framework combines the generation of test following the project test patern (POM) automatically using 
+Claude Code, Skills, Playwright-cli, Playwright, pytest, and pytest-bdd to create a comprehensive solution for testing web applications.
 This project uses as example the Cypress Real World App, a popular open-source project that provides a realistic web application for testing purposes.
 
 ## Key Features
 
+- **AI-Powered Test Generation** — Claude Code, enhanced with custom Skills, translates natural-language specifications into executable test code following Page Object Model pattern    
 - **Hybrid test strategy** — Web UI with pytest-bdd (Gherkin) and API tests with plain pytest
 - **Page Object Model** — Locators, actions, and assertions isolated from step definitions
 - **Thin BDD steps** — Steps only orchestrate; all Playwright logic lives in page objects
@@ -43,6 +45,8 @@ This project uses as example the Cypress Real World App, a popular open-source p
 | **Pytest**             | Test runner and orquestation                           |
 | **pytest-bdd**         | BDD integration with Gherkin scenarios                 |
 | **pytest-playwright**  | Browser fixtures and Playwright integration for pytest |
+
+## 
 
 ## Allure reports
 
