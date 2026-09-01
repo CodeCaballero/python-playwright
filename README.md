@@ -10,7 +10,7 @@
 
 
 ## Overview
-This test automation framework combines the generation of test following the project test patern (POM) automatically using 
+This test automation framework combines the generation of test following the project test pattern (POM) automatically using 
 Claude Code, Skills, Playwright-cli, Playwright, pytest, and pytest-bdd to create a comprehensive solution for testing web applications.
 This project uses as example the Cypress Real World App, a popular open-source project that provides a realistic web application for testing purposes.
 
@@ -42,17 +42,11 @@ This project uses as example the Cypress Real World App, a popular open-source p
 | **Git/GitHub**         | Version control and project hosting                    |
 | **Github Actions**     | Continuous integration pipeline                        |
 | **Github Pages**       | Artifact repository for Alure reports                  |
-| **Pytest**             | Test runner and orquestation                           |
+| **Pytest**             | Test runner and orchestration                          |
 | **pytest-bdd**         | BDD integration with Gherkin scenarios                 |
 | **pytest-playwright**  | Browser fixtures and Playwright integration for pytest |
 
-## 
 
-## Allure reports
-
-Allure reports are generated and published in https://codecaballero.github.io/python-playwright/
-
-![img.png](assets/img.png)
 
 ## Installation
 
@@ -61,17 +55,19 @@ Allure reports are generated and published in https://codecaballero.github.io/py
 | Tool    | Version |
 |:--------|:--------|
 | Python  | 3.12+   |
+| [uv](https://github.com/astral-sh/uv) | latest |
 | Node.js | 22+     |
 | Yarn    | latest  |
+| Claude Code | latest  |
+| [@playwright/cli](https://www.npmjs.com/package/@playwright/cli) | latest |
+
+Node.js and Yarn are only needed to run `deploy-dev-branch`, which clones and starts the app under test. `@playwright/cli` is used by the `playwright-cli-to-bdd` skill — `npm install -g @playwright/cli@latest` if it's not already on your PATH.
 
 The app under test must be available at:
 
 - **Web:** `http://localhost:3000`
 - **API:** `http://localhost:3001`
--
-### 0. Prerequisites
-- Python 3.12 or higher
-- [uv](https://github.com/astral-sh/uv) installed
+
 ### 1. Clone this repository
 
 ```bash
@@ -89,19 +85,36 @@ uv run pytest
 
 ### 3. Start the Cypress Real World App
 
-In a separate terminal:
-
+Execute the script, passing the branch you want to test as a parameter (it must exist on [CodeCaballero/cypress-realworld-app](https://github.com/CodeCaballero/cypress-realworld-app), the fork the script clones from):
 ```bash
-git clone https://github.com/CodeCaballero/cypress-realworld-app.git app
-cd app
-yarn install --frozen-lockfile
-yarn db:seed:dev
-yarn dev
+./deploy-dev-branch add-button-export
 ```
 
-Wait until both `http://localhost:3000` and `http://localhost:3001` respond.
+`yarn dev` runs in the foreground, so open a new terminal and wait until both `http://localhost:3000` and `http://localhost:3001` respond before continuing.
 
-### 4. Environment variables
+Note: the script reseeds the database (`yarn db:seed:dev`) on every run, so `storage_state` files left over under `.auth/` from a previous deploy may go stale — delete them if you hit unexpected onboarding/login screens.
+
+### 4. Generation of the code
+
+Execute in the Claude Code terminal, e.g.:
+
+```bash
+/playwright-cli-to-bdd verify that the CSV file is downloaded, that it is not empty, that it has at least one line, and that it includes the header: Date,Sender,Receiver,Amount,Description,Status.
+```
+
+The argument is optional — it defaults to reading `diff.txt`.
+
+### 5. How it works
+
+The deploy script clones the repository, checks out the branch passed as a parameter, deploys the cypress-real-world-app and generates a diff file with
+the changes on that branch.
+
+The Claude Code skill uses that `diff.txt` file and the `playwright-cli` tool to navigate through the application and generate the code following the framework's
+guidelines.
+
+The process can be viewed in this video (coming soon).
+
+### 6. Environment variables
 
 Defaults are set in `pyproject.toml`:
 
@@ -116,22 +129,27 @@ Override them when needed:
 WEB_BASE_URL=http://localhost:3000 API_BASE_URL=http://localhost:3001 pytest
 ```
 
-### 5. Run the tests
+### 7. Run the tests
 
 ```bash
 # Full suite
-pytest -v
+uv run pytest -v
 
 # API only
-pytest test/api/ -v
+uv run pytest test/api/ -v
 
 # Web (BDD) only
-pytest test/web/ -v
+uv run pytest test/web/ -v
 
 # With Allure results
-pytest -v --alluredir=allure-results
+uv run pytest -v --alluredir=allure-results
 allure serve allure-results
 
 # Playwright traces on failure
-pytest test/web/ -v --tracing=retain-on-failure
+uv run pytest test/web/ -v --tracing=retain-on-failure
 ```
+
+### 8. Allure reports
+
+Allure reports are generated and published in https://codecaballero.github.io/python-playwright/
+![img.png](assets/img.png)
