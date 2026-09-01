@@ -1,3 +1,7 @@
+import pytest
+from config.settings import API_BASE_URL
+
+from test.api.helpers.database_api import DatabaseApi
 from test.builder.user_builder import UserBuilder
 
 pytest_plugins = [
@@ -5,11 +9,6 @@ pytest_plugins = [
     "test.web.steps.onboarding_steps",
     "test.web.steps.create_user_steps",
 ]
-
-import pytest
-from config.settings import API_BASE_URL
-
-from test.api.helpers.database_api import DatabaseApi
 
 
 @pytest.fixture

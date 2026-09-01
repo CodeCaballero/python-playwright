@@ -57,7 +57,8 @@ class UserBuilder:
         missing_fields = set(self.REQUIRED_FIELDS) - set(self.user.keys())
         if missing_fields:
             raise ValueError(
-                f"Not all required fields are set. Required fields: {self.REQUIRED_FIELDS}. Missing fields: {missing_fields}"
+                f"Not all required fields are set. Required fields: {self.REQUIRED_FIELDS}."
+                f" Missing fields: {missing_fields}"
             )
 
     def build(self):
