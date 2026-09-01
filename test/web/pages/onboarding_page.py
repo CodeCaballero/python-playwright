@@ -10,6 +10,4 @@ class OnboardingPage(BasePage):
 
     def verify_onboarding_title(self):
         expect(self._loc_onboarding_title).to_be_visible()
-        expect(self._loc_onboarding_title).to_have_text(
-            "Get Started with Real World App"
-        )
+        expect(self._loc_onboarding_title).to_have_text("Get Started with Real World App")
