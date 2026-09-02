@@ -66,14 +66,13 @@ class UserBuilder:
         return dict(self.user)
 
     def build_random(self):
-        self.user["firstName"] = f"qa_{self.user['username']}"
-        self.user["lastName"] = f"last_{self.user['firstName']}"
-        self.user["email"] = f"{self.user['username']}@test.com"
-        self.user["avatar"] = (
-            f"https://api.dicebear.com/9.x/pixel-art/svg?seed={self.user['username']}"
-        )
-        self.user["defaultPrivacyLevel"] = "public"
-        self.user["balance"] = 0
-        self.user["phoneNumber"] = f"+{random.randint(1000000000, 9999999999)}"
+        username = self.user["username"]
+        self.set_first_name(f"qa_{username}")
+        self.set_last_name(f"last_{self.user['firstName']}")
+        self.set_email(f"{username}@test.com")
+        self.set_avatar(f"https://api.dicebear.com/9.x/pixel-art/svg?seed={username}")
+        self.set_privacy_level("public")
+        self.set_balance(0)
+        self.set_phone_number(f"+{random.randint(1000000000, 9999999999)}")
         self._check_fields()
         return dict(self.user)

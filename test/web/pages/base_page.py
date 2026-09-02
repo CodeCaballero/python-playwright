@@ -7,9 +7,3 @@ class BasePage:
 
     def navigate_to(self, url: str):
         self.page.goto(url)
-
-    def click(self, selector: str):
-        self.page.click(selector)
-
-    def fill(self, selector: str, text: str):
-        self.page.fill(selector, text)

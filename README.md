@@ -21,7 +21,7 @@ This project uses as example the Cypress Real World App, a popular open-source p
 
 - **AI-Powered Test Generation** — Claude Code, enhanced with custom Skills, translates natural-language specifications into executable test code following Page Object Model pattern    
 - **Hybrid test strategy** — Web UI with pytest-bdd (Gherkin) and API tests with plain pytest
-- **Page Object Model** — Locators, actions, and assertions isolated from step definitions
+- **Page Object Model** — Locators, actions, and assertions live in page objects, isolated from step definitions — following Playwright's POM convention (unlike classic Selenium POM, where assertions typically lived in the step/test layer)
 - **Thin BDD steps** — Steps only orchestrate; all Playwright logic lives in page objects
 - **Resilient locators** — Prefer `get_by_role` and `get_by_test_id` (`data-test`) (modified playwright configuration)
 - **Auth state reuse** — Login once, persist `storage_state` under `.auth/` for faster scenarios
