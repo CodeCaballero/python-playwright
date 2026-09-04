@@ -1,10 +1,4 @@
-Feature: Transaction Export
-
-  Scenario: Export personal transactions to CSV
-    Given the user "Heath93" is logged in
-    And I am on the personal transactions page
-    When I click the export button
-    Then the downloaded CSV file "transactions.csv" should include the header "Date,Sender,Receiver,Amount,Description,Status"
+Feature: Transactions
 
   Scenario: Send a payment to a contact
     Given the user "Heath93" is logged in

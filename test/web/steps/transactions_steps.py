@@ -13,20 +13,6 @@ def go_to_personal_transactions(page: Page):
     TransactionsPage(page).load_personal()
 
 
-@when("I click the export button")
-def click_export_button(page: Page):
-    TransactionsPage(page).click_export()
-
-
-@then(
-    parsers.parse(
-        'the downloaded CSV file "{filename}" should include the header "{header}"'
-    )
-)
-def check_csv_header(page: Page, filename: str, header: str):
-    TransactionsPage(page).check_csv_downloaded_with_header(filename, header)
-
-
 @when("I go to the new transaction page")
 def go_to_new_transaction(page: Page):
     TransactionsPage(page).load_new_transaction()

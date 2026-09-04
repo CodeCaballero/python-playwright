@@ -23,9 +23,6 @@ class ApiClient:
     def get_transactions_public(self):
         return self.request.get(f"{self.base_url}/transactions/public")
 
-    def get_transactions_export(self, params: dict | None = None):
-        return self.request.get(f"{self.base_url}/transactions/export", params=params)
-
     def post_transaction(self, payload: dict):
         return self.request.post(f"{self.base_url}/transactions", data=payload)
 

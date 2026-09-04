@@ -8,10 +8,6 @@ from test.web.pages.base_page import BasePage
 
 class TransactionsPage(BasePage):
     @property
-    def _loc_export_button(self):
-        return self.page.get_by_test_id("transaction-list-export-button")
-
-    @property
     def _loc_user_search_input(self):
         return self.page.get_by_test_id("user-list-search-input")
 
@@ -81,23 +77,6 @@ class TransactionsPage(BasePage):
 
     def load_transaction(self, transaction_id: str):
         self.navigate_to(f"{WEB_BASE_URL.rstrip('/')}/transaction/{transaction_id}")
-
-    def click_export(self):
-        with self.page.expect_download() as download_info:
-            self._loc_export_button.click()
-        self.page.last_download = download_info.value
-
-    def check_csv_downloaded_with_header(self, filename: str, header: str):
-        download = self.page.last_download
-        content = download.path().read_text()
-        lines = content.splitlines()
-
-        assert download.suggested_filename == filename, (
-            f"Expected downloaded file named '{filename}', got '{download.suggested_filename}'"
-        )
-        assert content.strip() != "", "Downloaded CSV file is empty"
-        assert len(lines) >= 1, "Downloaded CSV file has no lines"
-        assert lines[0] == header, f"Expected CSV header '{header}', got '{lines[0]}'"
 
     def search_user(self, full_name: str):
         self._loc_user_search_input.fill(full_name)

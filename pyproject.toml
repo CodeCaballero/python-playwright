@@ -43,7 +43,7 @@ env = [
 
 markers = [
     "reset_db: reset the database after scenarios tagged with @reset_db",
-    "flaky: retry this scenario on failure (pytest-rerunfailures)",
+    "known_flaky: applied to scenarios tagged @flaky - tags the Allure result as flaky, no rerun",
 ]
 
 [tool.ruff]
