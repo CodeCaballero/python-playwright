@@ -31,7 +31,7 @@ This project uses as example the Cypress Real World App, a popular open-source p
 - **CI/CD pipeline** — Optimized with dependency caching
 - **Reporting** — Allure reports published to GitHub Pages; Playwright traces on failure
 - **BDD skills** — Skill to convert specification in natural language into framework-compliant tests
-- **Known-flaky handling** — Scenarios marked @flaky run once (no rerun, so a real bug can't hide behind a passing retry), never fail the build (`xfail`, non-strict), and are tagged `flaky` in the Allure report
+- **Known-flaky handling** — Scenarios marked @flaky run once (no rerun) and report their real pass/fail result — nothing is muted, so a real regression still shows up in Allure. CI runs them in a separate, non-blocking step (`-m known_flaky`, `continue-on-error: true`) instead of hiding the failure
 - **Parallelization** — Tests run in parallel to speed up execution time with python-xdist
 
 ##  Tech Stack

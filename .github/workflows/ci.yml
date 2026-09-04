@@ -124,6 +124,21 @@ jobs:
         run: |
           echo -e "\033[92mRUN TEST WEB\033[0m"
           uv run pytest test/web/ -v \
+            -m "not known_flaky" \
+            --tracing=retain-on-failure \
+            --screenshot=only-on-failure \
+            --video=retain-on-failure \
+            --alluredir=allure-results
+        env:
+          WEB_BASE_URL: http://localhost:3000
+          API_BASE_URL: http://localhost:3001
+
+      - name: Run known-flaky tests WEB (non-blocking)
+        continue-on-error: true
+        run: |
+          echo -e "\033[93mRUN KNOWN-FLAKY TEST WEB (does not block CI)\033[0m"
+          uv run pytest test/web/ -v \
+            -m known_flaky \
             --tracing=retain-on-failure \
             --screenshot=only-on-failure \
             --video=retain-on-failure \

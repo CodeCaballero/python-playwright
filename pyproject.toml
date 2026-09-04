@@ -43,7 +43,7 @@ env = [
 
 markers = [
     "reset_db: reset the database after scenarios tagged with @reset_db",
-    "known_flaky: applied to scenarios tagged @flaky - tags the Allure result as flaky, no rerun",
+    "known_flaky: applied to scenarios tagged @flaky - runs once, reports its real result; CI runs it in a separate non-blocking step (see ci.yml) instead of muting failures",
 ]
 
 [tool.ruff]
