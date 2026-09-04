@@ -1,7 +1,10 @@
+import uuid
+
 import pytest
 from config.settings import API_BASE_URL
 from config.users import get_password_user
 from test.api.helpers.api_client import ApiClient
+from test.builder.user_builder import UserBuilder
 
 
 @pytest.fixture
@@ -19,3 +22,11 @@ def api_client_with_auth(api_client):
         return api_client
 
     return _api_client_with_auth
+
+
+@pytest.fixture
+def second_user(database_api):
+    username = f"qa_user_{uuid.uuid4().hex[:10]}"
+    user_data = UserBuilder().set_username(username).set_password("s3cret123").build_random()
+    response = database_api.create_user(user_data)
+    return response.json()["user"]

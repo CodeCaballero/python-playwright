@@ -17,8 +17,84 @@ class ApiClient:
     def get_transactions(self):
         return self.request.get(f"{self.base_url}/transactions")
 
+    def get_transactions_contacts(self):
+        return self.request.get(f"{self.base_url}/transactions/contacts")
+
+    def get_transactions_public(self):
+        return self.request.get(f"{self.base_url}/transactions/public")
+
     def get_transactions_export(self, params: dict | None = None):
         return self.request.get(f"{self.base_url}/transactions/export", params=params)
 
+    def post_transaction(self, payload: dict):
+        return self.request.post(f"{self.base_url}/transactions", data=payload)
+
+    def get_transaction(self, transaction_id: str):
+        return self.request.get(f"{self.base_url}/transactions/{transaction_id}")
+
+    def patch_transaction(self, transaction_id: str, payload: dict):
+        return self.request.patch(f"{self.base_url}/transactions/{transaction_id}", data=payload)
+
     def post_logout(self):
         return self.request.post(f"{self.base_url}/logout")
+
+    def get_bank_accounts(self):
+        return self.request.get(f"{self.base_url}/bankAccounts")
+
+    def get_bank_account(self, bank_account_id: str):
+        return self.request.get(f"{self.base_url}/bankAccounts/{bank_account_id}")
+
+    def post_bank_account(self, payload: dict):
+        return self.request.post(f"{self.base_url}/bankAccounts", data=payload)
+
+    def delete_bank_account(self, bank_account_id: str):
+        return self.request.delete(f"{self.base_url}/bankAccounts/{bank_account_id}")
+
+    def get_notifications(self):
+        return self.request.get(f"{self.base_url}/notifications")
+
+    def post_notifications_bulk(self, items: list):
+        return self.request.post(f"{self.base_url}/notifications/bulk", data={"items": items})
+
+    def patch_notification(self, notification_id: str, payload: dict):
+        return self.request.patch(f"{self.base_url}/notifications/{notification_id}", data=payload)
+
+    def get_contacts(self, username: str):
+        return self.request.get(f"{self.base_url}/contacts/{username}")
+
+    def post_contact(self, contact_user_id: str):
+        return self.request.post(
+            f"{self.base_url}/contacts", data={"contactUserId": contact_user_id}
+        )
+
+    def delete_contact(self, contact_id: str):
+        return self.request.delete(f"{self.base_url}/contacts/{contact_id}")
+
+    def get_comments(self, transaction_id: str):
+        return self.request.get(f"{self.base_url}/comments/{transaction_id}")
+
+    def post_comment(self, transaction_id: str, content: str | None = None):
+        data = {"content": content} if content is not None else {}
+        return self.request.post(f"{self.base_url}/comments/{transaction_id}", data=data)
+
+    def get_likes(self, transaction_id: str):
+        return self.request.get(f"{self.base_url}/likes/{transaction_id}")
+
+    def post_like(self, transaction_id: str):
+        return self.request.post(f"{self.base_url}/likes/{transaction_id}")
+
+    def get_users(self):
+        return self.request.get(f"{self.base_url}/users")
+
+    def get_users_search(self, q: str | None = None):
+        params = {"q": q} if q is not None else None
+        return self.request.get(f"{self.base_url}/users/search", params=params)
+
+    def get_user(self, user_id: str):
+        return self.request.get(f"{self.base_url}/users/{user_id}")
+
+    def get_user_profile(self, username: str):
+        return self.request.get(f"{self.base_url}/users/profile/{username}")
+
+    def patch_user(self, user_id: str, payload: dict):
+        return self.request.patch(f"{self.base_url}/users/{user_id}", data=payload)

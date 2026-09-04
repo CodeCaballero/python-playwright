@@ -8,6 +8,10 @@ pytest_plugins = [
     "test.web.steps.login_steps",
     "test.web.steps.onboarding_steps",
     "test.web.steps.create_user_steps",
+    "test.web.steps.transactions_steps",
+    "test.web.steps.bank_accounts_steps",
+    "test.web.steps.notifications_steps",
+    "test.web.steps.user_settings_steps",
 ]
 
 

@@ -1,6 +1,7 @@
 USERS = {
     "Heath93": "s3cret",
     "test222": "2222222",
+    "Judah_Dietrich50": "s3cret",
 }
 
 
