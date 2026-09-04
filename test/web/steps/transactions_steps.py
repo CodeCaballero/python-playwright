@@ -1,9 +1,9 @@
 from config.settings import API_BASE_URL
-from config.users import get_password_user
 from playwright.sync_api import Page
 from pytest_bdd import given, parsers, then, when
 
 from test.api.helpers.api_client import ApiClient
+from test.web.helpers.transaction_fixtures import create_transaction, create_transaction_as
 from test.web.pages.transactions_page import TransactionsPage
 
 
@@ -141,23 +141,8 @@ def check_no_search_results(page: Page):
     target_fixture="created_transaction_id",
 )
 def a_pending_payment_request(playwright, sender: str, receiver: str, amount: str, note: str):
-    request_context = playwright.request.new_context(base_url=API_BASE_URL)
-    try:
-        client = ApiClient(request_context)
-        client.post_login(sender, get_password_user(sender))
-        results = client.get_users_search(receiver).json()["results"]
-        receiver_id = next(user["id"] for user in results if user["username"] == receiver)
-        transaction = client.post_transaction(
-            {
-                "transactionType": "request",
-                "receiverId": receiver_id,
-                "description": note,
-                "amount": int(amount),
-            }
-        ).json()["transaction"]
-        return transaction["id"]
-    finally:
-        request_context.dispose()
+    transaction = create_transaction_as(playwright, sender, receiver, "request", amount, note)
+    return transaction["id"]
 
 
 @given(
@@ -166,14 +151,5 @@ def a_pending_payment_request(playwright, sender: str, receiver: str, amount: st
 )
 def a_payment_already_exists(page: Page, receiver: str, amount: str, note: str):
     client = ApiClient(page.context.request, base_url=API_BASE_URL)
-    results = client.get_users_search(receiver).json()["results"]
-    receiver_id = next(user["id"] for user in results if user["username"] == receiver)
-    transaction = client.post_transaction(
-        {
-            "transactionType": "payment",
-            "receiverId": receiver_id,
-            "description": note,
-            "amount": int(amount),
-        }
-    ).json()["transaction"]
+    transaction = create_transaction(client, receiver, "payment", amount, note)
     return transaction["id"]

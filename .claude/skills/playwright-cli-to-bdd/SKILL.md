@@ -199,6 +199,8 @@ Feature: <Human-readable domain name>
 - **Setup actor == the user under test** (already logged in via `Given the user "X" is logged in`, so the `page` fixture exists and carries the session cookies): reuse those cookies with `ApiClient(page.context.request, base_url=API_BASE_URL)` — no extra login needed. See `a_payment_already_exists` / `bank_account_already_exists` in `transactions_steps.py` / `bank_accounts_steps.py`.
 - **Setup actor != the user under test** (e.g. another user sends the pending request the logged-in user will act on): open an independent `playwright.request.new_context(base_url=API_BASE_URL)`, log in as that other user with `ApiClient.post_login`, do the setup, `.dispose()` the context. See `a_pending_payment_request` in `transactions_steps.py`. This works regardless of Given-step order since it doesn't touch the `page` fixture.
 
+**Don't inline the setup logic in the step once it's more than a single `ApiClient` call.** Looking a receiver up by username, building the payload, and managing the request-context lifecycle is business logic, not step-glue — and it does not belong in `ApiClient` either (its own rule is one method per endpoint, no branching/lookup logic inside it). Put it in a helper module under `test/web/helpers/` instead — same role `auth_state.py` already plays for login setup. See `test/web/helpers/transaction_fixtures.py` (`create_transaction(client, ...)` for the same-actor case, `create_transaction_as(playwright, sender, ...)` for the different-actor case, the latter calling the former after logging in). The `Given` step should then be a one-or-two-line call into the helper, mirroring how a UI step is a one-line call into a Page Object. Extract as soon as the same lookup/payload logic would otherwise be copy-pasted into a second step — don't wait for a third repetition.
+
 When the setup call returns an id you'll need later (e.g. the created transaction), give the `Given` step a `target_fixture` and return it — a later step can then jump straight to it (e.g. `TransactionsPage.load_transaction(id)`) instead of searching the UI by text.
 
 The one exception: when the precondition-looking step *is* the behavior under test (creating a payment is what "Send a payment" verifies), it stays UI-driven — don't move the thing being tested behind an API call.
@@ -254,7 +256,7 @@ Before finishing:
 - [ ] No hardcoded `http://localhost` or ports anywhere (use `WEB_BASE_URL` / `API_BASE_URL`)
 - [ ] No locators or `expect()` in step files; no raw `request.get/post` in test files (goes through `ApiClient`)
 - [ ] New step text is generic enough for future scenarios
-- [ ] Preconditions unrelated to the behavior under test are created via API/DB (`page.context.request` or a fresh `playwright.request` context), not by driving the UI through another create flow first
+- [ ] Preconditions unrelated to the behavior under test are created via API/DB (`page.context.request` or a fresh `playwright.request` context), not by driving the UI through another create flow first — and that setup logic lives in a `test/web/helpers/` helper, not inlined/duplicated across steps
 - [ ] `pytest --collect-only test/web/` collects without errors
 - [ ] Step 3's live check actually ran (`playwright-cli`,) and reported a confirmed result — not just read from the diff
 - [ ] Step 9's validation run actually passed against the live app — state the command and result, don't just claim it
