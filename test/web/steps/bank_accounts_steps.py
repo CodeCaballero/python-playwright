@@ -1,12 +1,22 @@
+from config.settings import API_BASE_URL
 from playwright.sync_api import Page
 from pytest_bdd import given, parsers, then, when
 
+from test.api.helpers.api_client import ApiClient
 from test.web.pages.bank_accounts_page import BankAccountsPage
 
 
 @given("I am on the bank accounts page")
 def go_to_bank_accounts(page: Page):
     BankAccountsPage(page).load()
+
+
+@given(parsers.parse('the bank account "{bank_name}" already exists'))
+def bank_account_already_exists(page: Page, bank_name: str):
+    client = ApiClient(page.context.request, base_url=API_BASE_URL)
+    client.post_bank_account(
+        {"bankName": bank_name, "accountNumber": "987654321", "routingNumber": "123456789"}
+    )
 
 
 @when("I click create bank account")

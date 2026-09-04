@@ -71,6 +71,9 @@ class TransactionsPage(BasePage):
     def load_new_transaction(self):
         self.navigate_to(f"{WEB_BASE_URL.rstrip('/')}/transaction/new")
 
+    def load_transaction(self, transaction_id: str):
+        self.navigate_to(f"{WEB_BASE_URL.rstrip('/')}/transaction/{transaction_id}")
+
     def click_export(self):
         with self.page.expect_download() as download_info:
             self._loc_export_button.click()
@@ -113,15 +116,6 @@ class TransactionsPage(BasePage):
 
     def check_transaction_confirmation(self, text: str):
         expect(self.page.get_by_text(text)).to_be_visible()
-
-    def open_transaction_by_description(self, description: str):
-        self.page.get_by_text(description).first.click()
-
-    def click_return_to_transactions(self):
-        self.page.get_by_test_id("new-transaction-return-to-transactions").click()
-
-    def check_transaction_visible_in_feed(self, description: str):
-        expect(self.page.get_by_text(description).first).to_be_visible()
 
     def check_transaction_detail_visible(self, description: str):
         expect(self._loc_detail_heading).to_be_visible()

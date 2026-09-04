@@ -58,14 +58,9 @@ def check_transaction_confirmation(page: Page, text: str):
     TransactionsPage(page).check_transaction_confirmation(text)
 
 
-@when("I return to the transactions list")
-def return_to_transactions(page: Page):
-    TransactionsPage(page).click_return_to_transactions()
-
-
-@when(parsers.parse('I open the transaction "{description}"'))
-def open_transaction(page: Page, description: str):
-    TransactionsPage(page).open_transaction_by_description(description)
+@when("I open the created transaction")
+def open_created_transaction(page: Page, created_transaction_id: str):
+    TransactionsPage(page).load_transaction(created_transaction_id)
 
 
 @then(parsers.parse('I should see the transaction detail for "{description}"'))
@@ -142,7 +137,8 @@ def check_no_search_results(page: Page):
     parsers.parse(
         'a pending payment request of "{amount}" from "{sender}" to "{receiver}" '
         'with note "{note}"'
-    )
+    ),
+    target_fixture="created_transaction_id",
 )
 def a_pending_payment_request(playwright, sender: str, receiver: str, amount: str, note: str):
     request_context = playwright.request.new_context(base_url=API_BASE_URL)
@@ -151,13 +147,33 @@ def a_pending_payment_request(playwright, sender: str, receiver: str, amount: st
         client.post_login(sender, get_password_user(sender))
         results = client.get_users_search(receiver).json()["results"]
         receiver_id = next(user["id"] for user in results if user["username"] == receiver)
-        client.post_transaction(
+        transaction = client.post_transaction(
             {
                 "transactionType": "request",
                 "receiverId": receiver_id,
                 "description": note,
                 "amount": int(amount),
             }
-        )
+        ).json()["transaction"]
+        return transaction["id"]
     finally:
         request_context.dispose()
+
+
+@given(
+    parsers.parse('a payment of "{amount}" to "{receiver}" with note "{note}" already exists'),
+    target_fixture="created_transaction_id",
+)
+def a_payment_already_exists(page: Page, receiver: str, amount: str, note: str):
+    client = ApiClient(page.context.request, base_url=API_BASE_URL)
+    results = client.get_users_search(receiver).json()["results"]
+    receiver_id = next(user["id"] for user in results if user["username"] == receiver)
+    transaction = client.post_transaction(
+        {
+            "transactionType": "payment",
+            "receiverId": receiver_id,
+            "description": note,
+            "amount": int(amount),
+        }
+    ).json()["transaction"]
+    return transaction["id"]

@@ -21,43 +21,35 @@ Feature: Transaction Export
   Scenario: Accept a pending payment request
     Given a pending payment request of "15" from "Judah_Dietrich50" to "Heath93" with note "QA accept test"
     And the user "Heath93" is logged in
-    And I am on the personal transactions page
-    When I open the transaction "QA accept test"
+    When I open the created transaction
     And I accept the payment request
     Then the request action buttons should no longer be visible
 
   Scenario: Reject a pending payment request
     Given a pending payment request of "15" from "Judah_Dietrich50" to "Heath93" with note "QA reject test"
     And the user "Heath93" is logged in
-    And I am on the personal transactions page
-    When I open the transaction "QA reject test"
+    When I open the created transaction
     And I reject the payment request
     Then the request action buttons should no longer be visible
 
   Scenario: Add a comment to a transaction
     Given the user "Heath93" is logged in
-    When I go to the new transaction page
-    And I send a payment of "5" to "Lia Rosenbaum" with note "QA comment test"
-    And I return to the transactions list
-    And I open the transaction "QA comment test"
+    And a payment of "5" to "Judah_Dietrich50" with note "QA comment test" already exists
+    When I open the created transaction
     And I add the comment "Thanks for this!"
     Then I should see the comment "Thanks for this!"
 
   Scenario: Like a transaction
     Given the user "Heath93" is logged in
-    When I go to the new transaction page
-    And I send a payment of "5" to "Lia Rosenbaum" with note "QA like test"
-    And I return to the transactions list
-    And I open the transaction "QA like test"
+    And a payment of "5" to "Judah_Dietrich50" with note "QA like test" already exists
+    When I open the created transaction
     And I like the transaction
     Then the transaction like count should be 1
 
   Scenario: View transaction detail
     Given the user "Heath93" is logged in
-    When I go to the new transaction page
-    And I send a payment of "5" to "Lia Rosenbaum" with note "QA detail test"
-    And I return to the transactions list
-    And I open the transaction "QA detail test"
+    And a payment of "5" to "Judah_Dietrich50" with note "QA detail test" already exists
+    When I open the created transaction
     Then I should see the transaction detail for "QA detail test"
 
   Scenario: View the public transactions feed

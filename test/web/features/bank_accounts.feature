@@ -10,11 +10,9 @@ Feature: Bank Accounts
 
   Scenario: Delete a bank account
     Given the user "Heath93" is logged in
+    And the bank account "QA Delete Bank" already exists
     And I am on the bank accounts page
-    When I click create bank account
-    And I fill the bank account form with bank name "QA Delete Bank", routing number "123456789" and account number "987654321"
-    And I save the bank account
-    And I delete the bank account "QA Delete Bank"
+    When I delete the bank account "QA Delete Bank"
     Then the bank account "QA Delete Bank" should be marked as deleted
 
   Scenario: See a validation error for a missing routing number

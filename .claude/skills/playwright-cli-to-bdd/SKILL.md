@@ -195,6 +195,14 @@ Feature: <Human-readable domain name>
 - Scenario names describe the **business outcome**, not the clicks.
 - Quotes for string parameters matching `parsers.parse` placeholders.
 
+**Preconditions: API/DB, never the UI.** If a scenario needs state that isn't itself the behavior under test (a transaction to comment/like/view, a bank account to delete, a pending request to accept/reject, a second user to interact with), create that state directly against the backend in a `Given` step — never by driving the UI through an unrelated create flow first. Driving the UI for setup adds time and flaky surface for zero coverage: the create flow already has its own scenario. Two patterns, pick based on who the acting user is:
+- **Setup actor == the user under test** (already logged in via `Given the user "X" is logged in`, so the `page` fixture exists and carries the session cookies): reuse those cookies with `ApiClient(page.context.request, base_url=API_BASE_URL)` — no extra login needed. See `a_payment_already_exists` / `bank_account_already_exists` in `transactions_steps.py` / `bank_accounts_steps.py`.
+- **Setup actor != the user under test** (e.g. another user sends the pending request the logged-in user will act on): open an independent `playwright.request.new_context(base_url=API_BASE_URL)`, log in as that other user with `ApiClient.post_login`, do the setup, `.dispose()` the context. See `a_pending_payment_request` in `transactions_steps.py`. This works regardless of Given-step order since it doesn't touch the `page` fixture.
+
+When the setup call returns an id you'll need later (e.g. the created transaction), give the `Given` step a `target_fixture` and return it — a later step can then jump straight to it (e.g. `TransactionsPage.load_transaction(id)`) instead of searching the UI by text.
+
+The one exception: when the precondition-looking step *is* the behavior under test (creating a payment is what "Send a payment" verifies), it stays UI-driven — don't move the thing being tested behind an API call.
+
 **Web — steps (thin layer, calls the Page Object only):**
 
 ```python
@@ -246,6 +254,7 @@ Before finishing:
 - [ ] No hardcoded `http://localhost` or ports anywhere (use `WEB_BASE_URL` / `API_BASE_URL`)
 - [ ] No locators or `expect()` in step files; no raw `request.get/post` in test files (goes through `ApiClient`)
 - [ ] New step text is generic enough for future scenarios
+- [ ] Preconditions unrelated to the behavior under test are created via API/DB (`page.context.request` or a fresh `playwright.request` context), not by driving the UI through another create flow first
 - [ ] `pytest --collect-only test/web/` collects without errors
 - [ ] Step 3's live check actually ran (`playwright-cli`,) and reported a confirmed result — not just read from the diff
 - [ ] Step 9's validation run actually passed against the live app — state the command and result, don't just claim it
