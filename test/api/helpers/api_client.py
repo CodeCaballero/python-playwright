@@ -8,14 +8,14 @@ class ApiClient:
         self.request = request
         self.base_url = base_url.rstrip("/")
 
-    def post_login(self, username: str, password: str):
-        return self.request.post(
-            f"{self.base_url}/login",
-            data={"username": username, "password": password},
-        )
+    def post_login(self, username: str, password: str, remember: bool = False):
+        data: dict[str, str | bool] = {"username": username, "password": password}
+        if remember:
+            data["remember"] = True
+        return self.request.post(f"{self.base_url}/login", data=data)
 
-    def get_transactions(self):
-        return self.request.get(f"{self.base_url}/transactions")
+    def get_transactions(self, params: dict | None = None):
+        return self.request.get(f"{self.base_url}/transactions", params=params)
 
     def get_transactions_contacts(self):
         return self.request.get(f"{self.base_url}/transactions/contacts")
@@ -37,6 +37,44 @@ class ApiClient:
 
     def post_logout(self):
         return self.request.post(f"{self.base_url}/logout")
+
+    def get_check_auth(self):
+        return self.request.get(f"{self.base_url}/checkAuth")
+
+    def get_bank_transfers(self):
+        return self.request.get(f"{self.base_url}/bankTransfers")
+
+    def get_test_data(self, entity: str):
+        return self.request.get(f"{self.base_url}/testData/{entity}")
+
+    def graphql_list_bank_accounts(self):
+        query = "query { listBankAccount { id bankName accountNumber routingNumber isDeleted } }"
+        return self.request.post(f"{self.base_url}/graphql", data={"query": query})
+
+    def graphql_create_bank_account(
+        self, bank_name: str, account_number: str, routing_number: str
+    ):
+        query = (
+            "mutation($bankName: String!, $accountNumber: String!, $routingNumber: String!) { "
+            "createBankAccount(bankName: $bankName, accountNumber: $accountNumber, "
+            "routingNumber: $routingNumber) { id bankName accountNumber routingNumber "
+            "isDeleted } }"
+        )
+        variables = {
+            "bankName": bank_name,
+            "accountNumber": account_number,
+            "routingNumber": routing_number,
+        }
+        return self.request.post(
+            f"{self.base_url}/graphql", data={"query": query, "variables": variables}
+        )
+
+    def graphql_delete_bank_account(self, bank_account_id: str):
+        query = "mutation($id: ID!) { deleteBankAccount(id: $id) }"
+        return self.request.post(
+            f"{self.base_url}/graphql",
+            data={"query": query, "variables": {"id": bank_account_id}},
+        )
 
     def get_bank_accounts(self):
         return self.request.get(f"{self.base_url}/bankAccounts")

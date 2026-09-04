@@ -59,6 +59,14 @@ class TransactionsPage(BasePage):
     def _loc_date_filter_button(self):
         return self.page.get_by_test_id("transaction-list-filter-date-range-button")
 
+    @property
+    def _loc_amount_filter_button(self):
+        return self.page.get_by_test_id("transaction-list-filter-amount-range-button")
+
+    @property
+    def _loc_amount_filter_slider(self):
+        return self.page.get_by_test_id("transaction-list-filter-amount-range-slider")
+
     def load_personal(self):
         self.navigate_to(f"{WEB_BASE_URL.rstrip('/')}/personal")
 
@@ -117,6 +125,12 @@ class TransactionsPage(BasePage):
     def check_transaction_confirmation(self, text: str):
         expect(self.page.get_by_text(text)).to_be_visible()
 
+    def check_transaction_visible(self, description: str):
+        expect(self.page.get_by_text(description)).to_be_visible()
+
+    def check_transaction_not_visible(self, description: str):
+        expect(self.page.get_by_text(description)).to_have_count(0)
+
     def check_transaction_detail_visible(self, description: str):
         expect(self._loc_detail_heading).to_be_visible()
         expect(self.page.get_by_test_id("transaction-description")).to_have_text(description)
@@ -172,3 +186,21 @@ class TransactionsPage(BasePage):
 
     def check_no_search_results(self):
         expect(self.page.get_by_role("listitem")).to_have_count(0)
+
+    def drag_amount_max_below_default(self):
+        self._loc_amount_filter_button.click()
+        track_box = self._loc_amount_filter_slider.bounding_box()
+        max_thumb = self.page.get_by_role("slider").nth(1)
+        thumb_box = max_thumb.bounding_box()
+        assert track_box is not None, "Amount filter slider is not visible"
+        assert thumb_box is not None, "Amount filter max thumb is not visible"
+        start_x = thumb_box["x"] + thumb_box["width"] / 2
+        start_y = thumb_box["y"] + thumb_box["height"] / 2
+        target_x = track_box["x"] + track_box["width"] * 0.5
+        self.page.mouse.move(start_x, start_y)
+        self.page.mouse.down()
+        self.page.mouse.move(target_x, start_y, steps=10)
+        self.page.mouse.up()
+
+    def check_amount_filter_narrowed(self):
+        expect(self._loc_amount_filter_button).not_to_have_text("Amount: $0 - $1,000")

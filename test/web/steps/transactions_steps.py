@@ -8,6 +8,7 @@ from test.web.pages.transactions_page import TransactionsPage
 
 
 @given("I am on the personal transactions page")
+@when("I am on the personal transactions page")
 def go_to_personal_transactions(page: Page):
     TransactionsPage(page).load_personal()
 
@@ -73,6 +74,16 @@ def check_feed_has_transactions(page: Page):
     TransactionsPage(page).check_feed_has_transactions()
 
 
+@then(parsers.parse('I should see the transaction "{description}" in the feed'))
+def check_transaction_visible(page: Page, description: str):
+    TransactionsPage(page).check_transaction_visible(description)
+
+
+@then(parsers.parse('I should not see the transaction "{description}" in the feed'))
+def check_transaction_not_visible(page: Page, description: str):
+    TransactionsPage(page).check_transaction_not_visible(description)
+
+
 @when("I like the transaction")
 def like_transaction(page: Page):
     TransactionsPage(page).click_like()
@@ -133,6 +144,16 @@ def check_no_search_results(page: Page):
     TransactionsPage(page).check_no_search_results()
 
 
+@when("I drag the amount range slider below the default maximum")
+def drag_amount_max(page: Page):
+    TransactionsPage(page).drag_amount_max_below_default()
+
+
+@then("the amount filter should be narrowed")
+def check_amount_filter_narrowed(page: Page):
+    TransactionsPage(page).check_amount_filter_narrowed()
+
+
 @given(
     parsers.parse(
         'a pending payment request of "{amount}" from "{sender}" to "{receiver}" '
@@ -153,3 +174,15 @@ def a_payment_already_exists(page: Page, receiver: str, amount: str, note: str):
     client = ApiClient(page.context.request, base_url=API_BASE_URL)
     transaction = create_transaction(client, receiver, "payment", amount, note)
     return transaction["id"]
+
+
+@given(
+    parsers.parse(
+        'a "{privacy_level}" payment of "{amount}" from "{sender}" to "{receiver}" '
+        'with note "{note}" already exists'
+    )
+)
+def a_privacy_payment_already_exists(
+    playwright, privacy_level: str, sender: str, receiver: str, amount: str, note: str
+):
+    create_transaction_as(playwright, sender, receiver, "payment", amount, note, privacy_level)

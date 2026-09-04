@@ -33,6 +33,41 @@ def test_transactions_without_auth(api_client):
     assert response.status == 401
 
 
+def test_transactions_page_two(api_client_with_auth):
+    response = api_client_with_auth("Heath93").get_transactions({"page": 2})
+
+    assert response.status == 200
+    page_data = response.json()["pageData"]
+    assert page_data["page"] == 2
+    assert page_data["hasNextPages"] is True
+
+
+def test_transactions_custom_limit(api_client_with_auth):
+    response = api_client_with_auth("Heath93").get_transactions({"limit": 5})
+
+    assert response.status == 200
+    data = response.json()
+    assert data["pageData"]["limit"] == 5
+    assert len(data["results"]) == 5
+
+
+def test_transactions_page_beyond_range(api_client_with_auth):
+    response = api_client_with_auth("Heath93").get_transactions({"page": 999})
+
+    assert response.status == 200
+    data = response.json()
+    assert data["pageData"]["hasNextPages"] is False
+
+
+def test_transactions_filtered_by_status(api_client_with_auth):
+    response = api_client_with_auth("Heath93").get_transactions({"status": "pending"})
+
+    assert response.status == 200
+    results = response.json()["results"]
+    assert results, "Expected at least one pending transaction"
+    assert all(txn["status"] == "pending" for txn in results)
+
+
 def test_transactions_contacts(api_client_with_auth):
     response = api_client_with_auth("Heath93").get_transactions_contacts()
 

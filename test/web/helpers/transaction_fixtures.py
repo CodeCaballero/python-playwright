@@ -6,18 +6,24 @@ from test.api.helpers.api_client import ApiClient
 
 
 def create_transaction(
-    client: ApiClient, receiver_username: str, transaction_type: str, amount: str, note: str
+    client: ApiClient,
+    receiver_username: str,
+    transaction_type: str,
+    amount: str,
+    note: str,
+    privacy_level: str | None = None,
 ) -> dict:
     results = client.get_users_search(receiver_username).json()["results"]
     receiver_id = next(user["id"] for user in results if user["username"] == receiver_username)
-    return client.post_transaction(
-        {
-            "transactionType": transaction_type,
-            "receiverId": receiver_id,
-            "description": note,
-            "amount": int(amount),
-        }
-    ).json()["transaction"]
+    payload = {
+        "transactionType": transaction_type,
+        "receiverId": receiver_id,
+        "description": note,
+        "amount": int(amount),
+    }
+    if privacy_level is not None:
+        payload["privacyLevel"] = privacy_level
+    return client.post_transaction(payload).json()["transaction"]
 
 
 def create_transaction_as(
@@ -27,11 +33,14 @@ def create_transaction_as(
     transaction_type: str,
     amount: str,
     note: str,
+    privacy_level: str | None = None,
 ) -> dict:
     request_context = playwright.request.new_context(base_url=API_BASE_URL)
     try:
         client = ApiClient(request_context)
         client.post_login(sender, get_password_user(sender))
-        return create_transaction(client, receiver_username, transaction_type, amount, note)
+        return create_transaction(
+            client, receiver_username, transaction_type, amount, note, privacy_level
+        )
     finally:
         request_context.dispose()

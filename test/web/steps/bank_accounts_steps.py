@@ -7,6 +7,7 @@ from test.web.pages.bank_accounts_page import BankAccountsPage
 
 
 @given("I am on the bank accounts page")
+@when("I am on the bank accounts page")
 def go_to_bank_accounts(page: Page):
     BankAccountsPage(page).load()
 

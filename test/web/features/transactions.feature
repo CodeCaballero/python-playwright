@@ -79,3 +79,10 @@ Feature: Transaction Export
     When I go to the new transaction page
     And I search for the user "zzznoresultzzz"
     Then I should see no search results
+
+  @flaky
+  Scenario: Filter personal transactions by amount range
+    Given the user "Heath93" is logged in
+    And I am on the personal transactions page
+    When I drag the amount range slider below the default maximum
+    Then the amount filter should be narrowed
