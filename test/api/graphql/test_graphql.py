@@ -1,3 +1,8 @@
+import pytest
+
+pytestmark = pytest.mark.graphql
+
+
 def test_list_bank_accounts_without_auth(api_client):
     response = api_client.graphql_list_bank_accounts()
 

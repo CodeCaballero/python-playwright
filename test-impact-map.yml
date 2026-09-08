@@ -1,0 +1,101 @@
+# Impact map
+domains:
+  login:
+    api_dir: test/api/login
+    web_tag: login
+    app_globs:
+      - "backend/auth.ts"
+      - "src/machines/authMachine.ts"
+      - "src/components/SignInForm.tsx"
+    always_run: true
+
+  users:
+    api_dir: test/api/users
+    web_tag: users
+    app_globs:
+      - "backend/user-routes.ts"
+      - "src/models/user.ts"
+      - "src/components/User*.tsx"
+      - "src/components/SignUpForm.tsx"
+      - "src/containers/UserOnboardingContainer.tsx"
+      - "src/containers/UserSettingsContainer.tsx"
+      - "src/machines/usersMachine.ts"
+      - "src/machines/userOnboardingMachine.ts"
+
+  bankaccounts:
+    api_dir: test/api/bankaccounts
+    web_tag: bankaccounts
+    app_globs:
+      - "backend/bankaccount-routes.ts"
+      - "src/models/bankaccount.ts"
+      - "src/components/BankAccount*.tsx"
+      - "src/containers/BankAccountsContainer.tsx"
+      - "src/machines/bankAccountsMachine.ts"
+
+  banktransfers:
+    api_dir: test/api/banktransfers
+    web_tag: null
+    app_globs:
+      - "backend/banktransfer-routes.ts"
+      - "src/models/banktransfer.ts"
+
+  transaction:
+    api_dir: test/api/transaction
+    web_tag: transaction
+    app_globs:
+      - "backend/transaction-routes.ts"
+      - "src/models/transaction.ts"
+      - "src/components/Transaction*.tsx"
+      - "src/containers/Transaction*.tsx"
+      - "src/utils/transactionUtils.ts"
+      - "src/machines/createTransactionMachine.ts"
+      - "src/machines/transactionDetailMachine.ts"
+      - "src/machines/transactionFiltersMachine.ts"
+      - "src/machines/publicTransactionsMachine.ts"
+      - "src/machines/personalTransactionsMachine.ts"
+
+  contacts:
+    api_dir: test/api/contacts
+    web_tag: null
+    app_globs:
+      - "backend/contact-routes.ts"
+      - "src/models/contact.ts"
+      - "src/machines/contactsTransactionsMachine.ts"
+
+  comments:
+    api_dir: test/api/comments
+    web_tag: comments
+    app_globs:
+      - "backend/comment-routes.ts"
+      - "src/models/comment.ts"
+      - "src/components/Comment*.tsx"
+
+  likes:
+    api_dir: test/api/likes
+    web_tag: likes
+    app_globs:
+      - "backend/like-routes.ts"
+      - "src/models/like.ts"
+
+  notifications:
+    api_dir: test/api/notifications
+    web_tag: notifications
+    app_globs:
+      - "backend/notification-routes.ts"
+      - "src/models/notification.ts"
+      - "src/components/Notification*.tsx"
+      - "src/containers/NotificationsContainer.tsx"
+      - "src/machines/notificationsMachine.ts"
+
+  graphql:
+    api_dir: test/api/graphql
+    web_tag: null
+    app_globs:
+      - "backend/graphql/**"
+      - "backend/gql-playground-routes.ts"
+
+  testdata:
+    api_dir: test/api/testdata
+    web_tag: null
+    app_globs:
+      - "backend/testdata-routes.ts"

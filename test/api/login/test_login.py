@@ -1,5 +1,7 @@
 import pytest
 
+pytestmark = pytest.mark.login
+
 
 @pytest.mark.parametrize(
     "username,password,status",

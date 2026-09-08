@@ -11,6 +11,16 @@ git clone https://github.com/CodeCaballero/cypress-realworld-app.git "$TEMP_DIR/
 cd "$TEMP_DIR/app"
 
 git diff main origin/"$1" > "$EXEC_DIR/diff.txt"
+
+cd "$EXEC_DIR"
+uv run python scripts/parse_diff.py diff.txt > touched_files.txt
+PYTHONPATH=. uv run python scripts/select_tests.py touched_files.txt | tee selection.json
+echo
+echo "Para correr solo los tests afectados:"
+echo "  pytest -m \"$(jq -r '.marker_expression' selection.json)\" test/"
+echo
+
+cd "$TEMP_DIR/app"
 git checkout "$1"
 yarn install --frozen-lockfile
 yarn db:seed:dev

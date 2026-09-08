@@ -1,3 +1,4 @@
+@transaction
 Feature: Transactions
 
   Scenario: Send a payment to a contact
@@ -26,6 +27,7 @@ Feature: Transactions
     And I reject the payment request
     Then the request action buttons should no longer be visible
 
+  @comments
   Scenario: Add a comment to a transaction
     Given the user "Heath93" is logged in
     And a payment of "5" to "Judah_Dietrich50" with note "QA comment test" already exists
@@ -33,6 +35,7 @@ Feature: Transactions
     And I add the comment "Thanks for this!"
     Then I should see the comment "Thanks for this!"
 
+  @likes
   Scenario: Like a transaction
     Given the user "Heath93" is logged in
     And a payment of "5" to "Judah_Dietrich50" with note "QA like test" already exists

@@ -1,3 +1,8 @@
+import pytest
+
+pytestmark = pytest.mark.banktransfers
+
+
 def test_bank_transfers_list(api_client_with_auth):
     response = api_client_with_auth("Heath93").get_bank_transfers()
 

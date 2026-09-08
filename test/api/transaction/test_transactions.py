@@ -1,5 +1,7 @@
 import pytest
 
+pytestmark = pytest.mark.transaction
+
 
 def test_transactions(api_client_with_auth):
     response = api_client_with_auth("Heath93").get_transactions()

@@ -1,3 +1,4 @@
+@notifications
 Feature: Notifications
 
   Scenario: View the list of notifications

@@ -1,3 +1,4 @@
+@bankaccounts
 Feature: Bank Accounts
 
   Scenario: Add a bank account successfully

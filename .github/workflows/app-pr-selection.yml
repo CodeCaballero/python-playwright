@@ -1,0 +1,106 @@
+name: App PR Test Selection
+
+# Fired by cypress-realworld-app's notify-test-selection.yml stub whenever a
+# PR opens/updates there. Computes the diff, decides which pytest domain
+# markers it touches (see test-impact-map.yml, scripts/parse_diff.py,
+# scripts/select_tests.py), runs only that subset (or the full suite if
+# `escalate` comes back true), and comments the result back on the app PR.
+#
+# Informational for now (continue-on-error): failures here never block the
+# app PR/merge.
+
+on:
+  repository_dispatch:
+    types: [app-pr]
+
+jobs:
+  select-and-test:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout test repo (this repo)
+        uses: actions/checkout@v4
+
+      - name: Checkout app repo at PR head
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.client_payload.repo }}
+          ref: ${{ github.event.client_payload.head_sha }}
+          path: app
+          fetch-depth: 0
+
+      - name: Compute diff against base branch
+        working-directory: app
+        run: |
+          git fetch --depth=1 origin "${{ github.event.client_payload.base_ref }}"
+          git diff "origin/${{ github.event.client_payload.base_ref }}...HEAD" > ../diff.txt
+          cat ../diff.txt
+
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Install test-repo dependencies
+        run: uv sync --locked
+
+      - name: Select tests
+        id: select
+        run: |
+          uv run python scripts/parse_diff.py diff.txt > files.txt
+          cat files.txt
+          PYTHONPATH=. uv run python scripts/select_tests.py files.txt | tee selection.json
+          echo "marker_expression=$(jq -r '.marker_expression // empty' selection.json)" >> "$GITHUB_OUTPUT"
+          echo "escalate=$(jq -r '.escalate' selection.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Install Playwright browsers
+        run: uv run playwright install --with-deps chromium
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      - name: Install app dependencies
+        working-directory: app
+        run: yarn install --frozen-lockfile
+
+      - name: Seed database
+        working-directory: app
+        run: yarn db:seed:dev
+
+      - name: Start app
+        working-directory: app
+        run: |
+          yarn dev &
+          npx wait-on http://localhost:3000 http://localhost:3001 --timeout 60000
+          curl --fail --retry 10 --retry-delay 5 --retry-connrefused http://localhost:3000 || exit 1
+
+      - name: Run selected regression tests
+        env:
+          WEB_BASE_URL: http://localhost:3000
+          API_BASE_URL: http://localhost:3001
+        run: |
+          if [ "${{ steps.select.outputs.escalate }}" = "true" ]; then
+            echo "escalate=true (unmapped files in diff) -> running full suite"
+            uv run pytest test/ -v
+          else
+            echo "Running only: ${{ steps.select.outputs.marker_expression }}"
+            uv run pytest test/ -v -m "${{ steps.select.outputs.marker_expression }}"
+          fi
+
+      - name: Comment selection on app PR
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.APP_REPO_TOKEN }}
+        run: |
+          gh pr comment "${{ github.event.client_payload.pr_number }}" \
+            --repo "${{ github.event.client_payload.repo }}" \
+            --body "$(cat <<EOF
+          **Regression test selection**
+          \`\`\`json
+          $(cat selection.json)
+          \`\`\`
+          EOF
+          )"

@@ -1,3 +1,8 @@
+import pytest
+
+pytestmark = pytest.mark.notifications
+
+
 def test_notifications_list(api_client_with_auth):
     response = api_client_with_auth("Heath93").get_notifications()
 

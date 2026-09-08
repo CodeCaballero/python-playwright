@@ -1,3 +1,4 @@
+@transaction
 Feature: Transaction Privacy
 
   @reset_db

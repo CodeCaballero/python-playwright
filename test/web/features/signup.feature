@@ -1,3 +1,4 @@
+@users
 Feature: Sign Up
 
   @reset_db

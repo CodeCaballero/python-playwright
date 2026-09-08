@@ -1,3 +1,8 @@
+import pytest
+
+pytestmark = pytest.mark.contacts
+
+
 def test_get_contacts_by_username(api_client_with_auth):
     response = api_client_with_auth("Heath93").get_contacts("Heath93")
 

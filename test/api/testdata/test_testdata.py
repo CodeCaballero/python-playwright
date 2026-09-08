@@ -1,5 +1,7 @@
 import pytest
 
+pytestmark = pytest.mark.testdata
+
 
 @pytest.mark.parametrize(
     "entity",

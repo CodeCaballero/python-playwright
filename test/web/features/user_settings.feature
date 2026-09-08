@@ -1,3 +1,4 @@
+@users
 Feature: User Settings
 
   @reset_db

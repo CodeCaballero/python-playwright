@@ -1,5 +1,7 @@
 import pytest
 
+pytestmark = pytest.mark.bankaccounts
+
 
 def test_bank_accounts_list(api_client_with_auth):
     response = api_client_with_auth("Heath93").get_bank_accounts()

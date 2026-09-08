@@ -1,4 +1,7 @@
+import pytest
 from config.users import get_password_user
+
+pytestmark = pytest.mark.users
 
 
 def test_users_list(api_client_with_auth):

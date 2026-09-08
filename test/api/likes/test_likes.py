@@ -1,3 +1,8 @@
+import pytest
+
+pytestmark = pytest.mark.likes
+
+
 def test_get_likes(api_client_with_auth, second_user):
     client = api_client_with_auth("Heath93")
     transaction = client.post_transaction(
