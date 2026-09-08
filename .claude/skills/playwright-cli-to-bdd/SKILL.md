@@ -195,6 +195,8 @@ Feature: <Human-readable domain name>
 - Scenario names describe the **business outcome**, not the clicks.
 - Quotes for string parameters matching `parsers.parse` placeholders.
 
+**Tag the domain (mandatory):** every `.feature` gets a `@<domain>` tag above `Feature:` (or above one specific `Scenario:` when only that scenario belongs to a different domain than the rest of the file — see `transactions.feature`'s `@comments`/`@likes` scenarios). The tag name must match an existing domain in `test-impact-map.yml`; if this is a genuinely new business domain, add an entry there too (`api_dir`, `web_tag`, `app_globs`) instead of inventing an unregistered tag. pytest-bdd turns the tag into a `pytest.mark.<domain>` marker automatically — this is what lets `pytest -m "<domain>"` and the regression-selection scripts (`scripts/parse_diff.py` + `scripts/select_tests.py`) find these scenarios. An untagged feature is invisible to that selection.
+
 **Preconditions: API/DB, never the UI.** If a scenario needs state that isn't itself the behavior under test (a transaction to comment/like/view, a bank account to delete, a pending request to accept/reject, a second user to interact with), create that state directly against the backend in a `Given` step — never by driving the UI through an unrelated create flow first. Driving the UI for setup adds time and flaky surface for zero coverage: the create flow already has its own scenario. Two patterns, pick based on who the acting user is:
 - **Setup actor == the user under test** (already logged in via `Given the user "X" is logged in`, so the `page` fixture exists and carries the session cookies): reuse those cookies with `ApiClient(page.context.request, base_url=API_BASE_URL)` — no extra login needed. See `a_payment_already_exists` / `bank_account_already_exists` in `transactions_steps.py` / `bank_accounts_steps.py`.
 - **Setup actor != the user under test** (e.g. another user sends the pending request the logged-in user will act on): open an independent `playwright.request.new_context(base_url=API_BASE_URL)`, log in as that other user with `ApiClient.post_login`, do the setup, `.dispose()` the context. See `a_pending_payment_request` in `transactions_steps.py`. This works regardless of Given-step order since it doesn't touch the `page` fixture.
@@ -222,6 +224,8 @@ def test_transactions_export(api_client_with_auth):
     assert response.status == 200
     assert response.headers["content-type"].startswith("text/csv")
 ```
+
+**Tag the domain (mandatory):** every `test/api/<domain>/test_*.py` module declares `pytestmark = pytest.mark.<domain>` right after its imports (see `test_bankaccounts.py`) — one explicit line per file, not inferred from the folder name by any hook. Use the same domain name as the `api_dir` entry in `test-impact-map.yml`; if this is a new domain folder, add an entry there too instead of leaving it unregistered. This is what lets `pytest -m "<domain>"` and the regression-selection scripts find these tests — an untagged file is invisible to that selection.
 
 ### Step 8 — Wire up (web only)
 
@@ -257,6 +261,7 @@ Before finishing:
 - [ ] No locators or `expect()` in step files; no raw `request.get/post` in test files (goes through `ApiClient`)
 - [ ] New step text is generic enough for future scenarios
 - [ ] Preconditions unrelated to the behavior under test are created via API/DB (`page.context.request` or a fresh `playwright.request` context), not by driving the UI through another create flow first — and that setup logic lives in a `test/web/helpers/` helper, not inlined/duplicated across steps
+- [ ] New test file/feature has its domain `@tag` (web) or `pytestmark` (API), and that domain exists in `test-impact-map.yml` (added a new entry there if it didn't)
 - [ ] `pytest --collect-only test/web/` collects without errors
 - [ ] Step 3's live check actually ran (`playwright-cli`,) and reported a confirmed result — not just read from the diff
 - [ ] Step 9's validation run actually passed against the live app — state the command and result, don't just claim it
