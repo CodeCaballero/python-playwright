@@ -1,0 +1,136 @@
+name: App PR Test Generation
+
+on:
+  repository_dispatch:
+    types: [app-pr-generate-tests]
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+concurrency:
+  group: generate-tests-${{ github.event.client_payload.pr_number }}
+  cancel-in-progress: true
+
+jobs:
+  generate-tests:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 45
+    env:
+      PR_NUMBER: ${{ github.event.client_payload.pr_number }}
+      APP_REPO: ${{ github.event.client_payload.repo }}
+    steps:
+      - name: Checkout test repo (this repo)
+        uses: actions/checkout@v4
+
+      - name: Checkout app repo at PR head
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.client_payload.repo }}
+          ref: ${{ github.event.client_payload.head_sha }}
+          path: app
+          fetch-depth: 0
+
+      - name: Compute diff against base branch
+        working-directory: app
+        run: |
+          git fetch --depth=1 origin "${{ github.event.client_payload.base_ref }}"
+          git diff "origin/${{ github.event.client_payload.base_ref }}...HEAD" > ../diff.txt
+
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Install test-repo dependencies
+        run: uv sync --locked
+
+      # Only spend Claude time/tokens when the diff touches app source code
+      - name: Check if diff touches app source
+        id: gate
+        run: |
+          uv run python scripts/parse_diff.py diff.txt | tee "$RUNNER_TEMP/files.txt"
+          if grep -q '^src/\|^backend/' "$RUNNER_TEMP/files.txt"; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No src/ or backend/ changes -> skipping test generation"
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install Playwright browsers (pytest-playwright)
+        if: steps.gate.outputs.run == 'true'
+        run: uv run playwright install --with-deps chromium
+
+      - name: Set up Node.js
+        if: steps.gate.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install playwright-cli
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          npm install -g @playwright/cli@latest yarn
+          playwright-cli install-browser || npx -y playwright install chromium
+
+      - name: Install app dependencies
+        if: steps.gate.outputs.run == 'true'
+        working-directory: app
+        run: yarn install --frozen-lockfile
+
+      - name: Seed database
+        if: steps.gate.outputs.run == 'true'
+        working-directory: app
+        run: yarn db:seed:dev
+
+      - name: Start app
+        if: steps.gate.outputs.run == 'true'
+        working-directory: app
+        run: |
+          yarn dev &
+          npx wait-on http://localhost:3000 http://localhost:3001 --timeout 60000
+          curl --fail --retry 10 --retry-delay 5 --retry-connrefused http://localhost:3000 || exit 1
+
+      - name: Generate tests with Claude Code
+        if: steps.gate.outputs.run == 'true'
+        id: claude
+        uses: anthropics/claude-code-action@v1
+        env:
+          WEB_BASE_URL: http://localhost:3000
+          API_BASE_URL: http://localhost:3001
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          prompt: "/playwright-cli-to-bdd diff.txt"
+          claude_args: >-
+            --max-turns 80
+            --allowedTools "Read,Write,Edit,Glob,Grep,Skill,Bash(playwright-cli:*),Bash(npx playwright:*),Bash(uv run pytest:*),Bash(curl:*),Bash(git diff:*),Bash(git status:*),Bash(ls:*),Bash(cat:*),Bash(grep:*)"
+
+      - name: Upload Claude execution log
+        if: always() && steps.gate.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: claude-execution-log
+          path: ${{ steps.claude.outputs.execution_file }}
+          if-no-files-found: ignore
+
+      - name: Open PR with generated tests
+        if: steps.gate.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -z "$(git status --porcelain test/)" ]; then
+            echo "Claude generated no test changes (skill aborted or nothing to test)"
+            exit 0
+          fi
+          BRANCH="autotests/app-pr-${PR_NUMBER}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$BRANCH"
+          git add test/
+          git commit -m "test: auto-generated tests for ${APP_REPO}#${PR_NUMBER}"
+          git push --force origin "$BRANCH"
+          gh pr view "$BRANCH" >/dev/null 2>&1 || gh pr create \
+            --base main --head "$BRANCH" \
+            --title "Auto-generated tests for ${APP_REPO}#${PR_NUMBER}" \
+            --body "Tests generated by Claude Code (\`playwright-cli-to-bdd\` skill) from https://github.com/${APP_REPO}/pull/${PR_NUMBER}. Review before merging."
