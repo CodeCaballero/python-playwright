@@ -113,9 +113,10 @@ the changes on that branch.
 The Claude Code skill uses that `diff.txt` file and the `playwright-cli` tool to navigate through the application and generate the code following the framework's
 guidelines.
 
-![](/home/caballero/dev/python-playwright/assets/img2.png)
-![](/home/caballero/dev/python-playwright/assets/img3.png)
-![](/home/caballero/dev/python-playwright/assets/img4.png)
+
+![](assets/img3.png)
+![](assets/img4.png)
+
 
 ### 6. Environment variables
 
