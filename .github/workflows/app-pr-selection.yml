@@ -1,14 +1,5 @@
 name: App PR Test Selection
 
-# Fired by cypress-realworld-app's notify-test-selection.yml stub whenever a
-# PR opens/updates there. Computes the diff, decides which pytest domain
-# markers it touches (see test-impact-map.yml, scripts/parse_diff.py,
-# scripts/select_tests.py), runs only that subset (or the full suite if
-# `escalate` comes back true), and comments the result back on the app PR.
-#
-# Informational for now (continue-on-error): failures here never block the
-# app PR/merge.
-
 on:
   repository_dispatch:
     types: [app-pr]
@@ -32,7 +23,7 @@ jobs:
       - name: Compute diff against base branch
         working-directory: app
         run: |
-          git fetch --depth=1 origin "${{ github.event.client_payload.base_ref }}"
+          git fetch origin "${{ github.event.client_payload.base_ref }}"
           git diff "origin/${{ github.event.client_payload.base_ref }}...HEAD" > ../diff.txt
           cat ../diff.txt
 

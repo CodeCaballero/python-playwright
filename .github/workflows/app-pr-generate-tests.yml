@@ -36,7 +36,7 @@ jobs:
       - name: Compute diff against base branch
         working-directory: app
         run: |
-          git fetch --depth=1 origin "${{ github.event.client_payload.base_ref }}"
+          git fetch origin "${{ github.event.client_payload.base_ref }}"
           git diff "origin/${{ github.event.client_payload.base_ref }}...HEAD" > ../diff.txt
 
       - name: Install uv
